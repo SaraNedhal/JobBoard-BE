@@ -3,7 +3,8 @@ from django.http import HttpResponse
 from .models import Skill, Profile, Company, Job_category, Job, Application
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
-
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
@@ -11,6 +12,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
+
+@api_view(['GET'])
+def hello_world(request):
+    return Response({'message': 'Hello, world!'})
 
 # Job-Category views:
 
