@@ -67,3 +67,21 @@ def application_index(request):
 
 def application_create(request):
   pass
+
+class CompanyList(ListView):
+    model = Company
+
+class CompanyDetail(DetailView):
+    model = Company
+
+class CompanyCreate(CreateView):
+    model = Company
+    fields = ['company_name', 'location', 'logo', 'email']
+
+class CompanyUpdate(UpdateView):
+    model = Company
+    fields = ['company_name', 'location', 'logo', 'email']
+
+class CompanyDelete(DeleteView):
+    model = Company
+    success_url = '/company/'
