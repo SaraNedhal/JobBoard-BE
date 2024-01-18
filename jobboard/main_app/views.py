@@ -12,6 +12,56 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
 
+# Job-Category views:
+
+class JobCategoryList(ListView):
+    model = Job
+
+
+class JobCategoryDetail(DetailView):
+    model = Job
+
+
+class JobCategoryCreate(CreateView):
+    model = Job
+    fields = ['category_name']
+
+
+class JobCategoryUpdate(UpdateView):
+    model = Job
+    fields = ['category_name']
+
+
+class JobCategoryDelete(DeleteView):
+    model = Job
+    success_url = '/job_categories'
+
+
+# Job Views:
+
+class JobList(ListView):
+    model = Job
+
+
+class JobDetail(DetailView):
+    model = Job
+
+
+class JobCreate(CreateView):
+    model = Job
+    fields = ['job_title', 'job_description', 'job_salary']
+
+
+class JobUpdate(UpdateView):
+    model = Job
+    fields = ['job_title', 'job_description', 'job_salary']
+
+
+class JobDelete(DeleteView):
+    model = Job
+    success_url = '/jobs'
+
+
 def application_index(request):
   pass
 
