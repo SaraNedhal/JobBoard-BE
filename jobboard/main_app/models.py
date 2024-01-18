@@ -20,8 +20,6 @@ class Skill(models.Model):
   skill_name = models.CharField(max_length=100)
 
 class Profile(models.Model):
-  first_name = models.CharField(max_length=50 ,  default="")
-  last_name = models.CharField(max_length=50 , default="")
   email = models.EmailField(max_length = 254)
   role =  models.CharField(max_length=1, choices=ROLES,default=ROLES[1][0])
   phone_number = models.CharField(max_length=20)
