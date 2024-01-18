@@ -15,25 +15,25 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 # Job-Category views:
 
 class JobCategoryList(ListView):
-    model = Job
+    model = Job_category
 
 
 class JobCategoryDetail(DetailView):
-    model = Job
+    model = Job_category
 
 
 class JobCategoryCreate(CreateView):
-    model = Job
+    model = Job_category
     fields = ['category_name']
 
 
 class JobCategoryUpdate(UpdateView):
-    model = Job
+    model = Job_category
     fields = ['category_name']
 
 
 class JobCategoryDelete(DeleteView):
-    model = Job
+    model = Job_category
     success_url = '/job_categories'
 
 
