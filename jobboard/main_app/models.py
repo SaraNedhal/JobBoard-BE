@@ -24,7 +24,7 @@ class Profile(models.Model):
   role =  models.CharField(max_length=1, choices=ROLES,default=ROLES[1][0])
   phone_number = models.CharField(max_length=20)
   image = models.ImageField(upload_to='main_app/static/uploads', default="")
-  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  user = models.OneToOneField(User, on_delete=models.CASCADE)
   skills = models.ManyToManyField(Skill)
 
 
