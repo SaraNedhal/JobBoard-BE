@@ -31,5 +31,4 @@ urlpatterns = [
     path('application/<int:user_id>/create/' , views.application_create, name="applications_create" ),
   
     path('accounts/signup/', views.signup, name='signup'),
- 
 ]

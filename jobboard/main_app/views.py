@@ -25,8 +25,8 @@ def hello_world(request):
 # Job-Category views:
 
 class JobCategoryList(generics.ListAPIView):
-  queryset = Job_category.objects.all()
-  serializer_class = Job_categorySerializer
+    queryset = Job_category.objects.all()
+    serializer_class = Job_categorySerializer
 
     def get(self, request, *args, **kwargs):
         job_categories = Job_categorySerializer(self.get_queryset(), many=True).data
@@ -39,8 +39,8 @@ class JobCategoryDetail(DetailView):
 
 class JobCategoryCreate(generics.CreateAPIView):
     # model = Job_category
-  serializer_class = Job_categorySerializer
-  permission_class = [IsAuthenticated]
+    serializer_class = Job_categorySerializer
+    permission_class = [IsAuthenticated]
     
     # fields = ['category_name']
 
