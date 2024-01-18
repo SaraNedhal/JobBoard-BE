@@ -11,7 +11,8 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAuthenticated
-
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 
@@ -102,4 +103,17 @@ class CompanyUpdate(UpdateView):
 class CompanyDelete(DeleteView):
     model = Company
     success_url = '/company/'
+    
+@csrf_exempt
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return Response({'success': True, 'message': 'Signup successful'})
+        else:
+            return Response({'success': False, 'message': 'Invalid sign up - try again'}, status=400)
+
+    return Response({'success': False, 'message': 'Bad request'}, status=400)
 

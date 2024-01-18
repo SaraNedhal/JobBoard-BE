@@ -1,3 +1,4 @@
+
 from rest_framework import serializers
 from .models import User, Profile, Company , Application , Job, Job_category , Skill 
   

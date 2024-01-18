@@ -29,5 +29,7 @@ urlpatterns = [
 
     path('application/' , views.application_index , name="application_index"),
     path('application/<int:user_id>/create/' , views.application_create, name="applications_create" ),
+  
+    path('accounts/signup/', views.signup, name='signup'),
  
 ]
