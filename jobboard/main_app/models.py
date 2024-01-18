@@ -40,8 +40,8 @@ class Job_category(models.Model):
   
 class Job(models.Model):
   job_title = models.CharField(max_length=100)
-  job_description = models.TextField(max_length=2000)
-  job_salary = models.FloatField()
+  job_description = models.TextField(max_length=2500)
+  job_salary = models.DecimalField(decimal_places=2,max_digits=12)
   job_created_at = models.DateTimeField(auto_now_add=True)
   job_updated_at = models.DateTimeField(auto_now=True)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
