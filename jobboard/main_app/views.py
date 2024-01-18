@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+
+from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer
 from .models import Skill, Profile, Company, Job_category, Job, Application
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
@@ -8,7 +10,9 @@ from rest_framework.response import Response
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from rest_framework.permissions import IsAuthenticated
 
+from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 # Create your views here.
@@ -19,17 +23,21 @@ def hello_world(request):
 
 # Job-Category views:
 
-class JobCategoryList(ListView):
-    model = Job_category
+class JobCategoryList(generics.ListAPIView):
+  queryset = Job_category.objects.all()
+  serializer_class = Job_categorySerializer
 
 
 class JobCategoryDetail(DetailView):
     model = Job_category
 
 
-class JobCategoryCreate(CreateView):
-    model = Job_category
-    fields = ['category_name']
+class JobCategoryCreate(generics.CreateAPIView):
+    # model = Job_category
+  serializer_class = Job_categorySerializer
+  permission_class = [IsAuthenticated]
+    
+    # fields = ['category_name']
 
 
 class JobCategoryUpdate(UpdateView):
@@ -44,8 +52,10 @@ class JobCategoryDelete(DeleteView):
 
 # Job Views:
 
-class JobList(ListView):
-    model = Job
+class JobList(generics.ListAPIView):
+   queryset = Job.objects.all()
+   serializer_class = JobSerializer
+   model = Job
 
 
 class JobDetail(DetailView):
@@ -73,8 +83,10 @@ def application_index(request):
 def application_create(request):
   pass
 
-class CompanyList(ListView):
-    model = Company
+class CompanyList(generics.ListAPIView):
+  queryset = Company.objects.all()
+  serializer_class = CompanySerializer
+  model = Company
 
 class CompanyDetail(DetailView):
     model = Company
@@ -90,3 +102,4 @@ class CompanyUpdate(UpdateView):
 class CompanyDelete(DeleteView):
     model = Company
     success_url = '/company/'
+
