@@ -29,7 +29,11 @@ urlpatterns = [
 
     path('application/' , views.application_index , name="application_index"),
     path('application/<int:user_id>/create/' , views.application_create, name="applications_create" ),
+
+    path('profile/', views.ProfileList.as_view(), name='profile_index'),
+    # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),
   
-    path('accounts/signup/', views.signup, name='signup'),
+    # path('accounts/signup/', views.signup, name='signup'),
+    path('signup/', views.RegistrationView.as_view(), name='signup'),
  
 ]
