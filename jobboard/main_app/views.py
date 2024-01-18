@@ -10,7 +10,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-
+from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer
 # Create your views here.
 
 @api_view(['GET'])
@@ -21,6 +21,10 @@ def hello_world(request):
 
 class JobCategoryList(ListView):
     model = Job_category
+
+    def get(self, request, *args, **kwargs):
+        job_categories = Job_categorySerializer(self.get_queryset(), many=True).data
+        return Response(job_categories)
 
 
 class JobCategoryDetail(DetailView):

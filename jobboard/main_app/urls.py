@@ -5,9 +5,9 @@ urlpatterns = [
     # path('', views.home, name='home'),
     # path('about/', views.about, name='about'),
     path('hello-world/', views.hello_world, name='hello_world'),
-    
+
     # Paths for all the CRUD Operations for job_category - CBVs
-    path('job_categories/', views.JobCategoryList.as_view(), name='job_category_index'),
+    path('job_categories/', views.JobCategoryList.as_view(), name='job_category_list'),
     path('job_categories/<int:pk>', views.JobCategoryDetail.as_view(), name="job_category_detail"),
     path('job_categories/create/', views.JobCategoryCreate.as_view(), name='job_category_create'),
     path('job_categories/<int:pk>/update/', views.JobCategoryUpdate.as_view(), name='job_category_update'),
