@@ -2,3 +2,4 @@ __pycache__/
 migrations/
 .env
 .DS_Store
+static/uploads_resumes/*pdf
