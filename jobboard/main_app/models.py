@@ -19,6 +19,10 @@ ROLES = (
 class Skill(models.Model):
   skill_name = models.CharField(max_length=100)
 
+  def __str__(self):
+    return self.skill_name
+  
+
 class Profile(models.Model):
   email = models.EmailField(max_length = 254)
   role =  models.CharField(max_length=1, choices=ROLES,default=ROLES[1][0])
@@ -33,9 +37,15 @@ class Company(models.Model):
   location = models.CharField(max_length=200)
   logo = models.ImageField(upload_to='main_app/static/uploads', default="")
   email = models.EmailField(max_length = 254)
+
+  def __str__(self):
+    return self.company_name
   
 class Job_category(models.Model):
   category_name = models.CharField(max_length=100)
+
+  def __str__(self):
+    return self.category_name
 
   
 class Job(models.Model):
@@ -49,6 +59,8 @@ class Job(models.Model):
   job_category = models.ForeignKey(Job_category, on_delete=models.CASCADE)
   skills = models.ManyToManyField(Skill)
   
+  def __str__(self):
+    return self.job_title
   
 
 class Application(models.Model):

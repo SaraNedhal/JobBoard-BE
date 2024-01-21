@@ -13,7 +13,7 @@ class SkillSerializer(serializers.ModelSerializer):
     fields = '__all__'
   
 class JobSerializer(serializers.ModelSerializer):
-    applications = ApplicationSerializer(many=True)
+    # applications = ApplicationSerializer(many=True)
     skills = SkillSerializer(many=True)
     
     class Meta:
