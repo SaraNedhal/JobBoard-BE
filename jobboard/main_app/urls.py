@@ -32,6 +32,12 @@ urlpatterns = [
     path('application/update/' , views.application_update , name="application_update"),
     path('application/delete/' , views.application_delete , name="application_delete"),
 
+    path('skill/', views.SkillList.as_view(), name='skill_list'),
+    path('skill/<int:pk>', views.SkillDetail.as_view(), name='skill_detail'),
+    path('skill/create/', views.SkillCreate.as_view(), name='skill_create'),
+    path('skill/<int:pk>/update', views.SkillUpdate.as_view(), name='skill_update'),
+    path('skill/<int:pk>/delete', views.SkillDelete.as_view(), name='skill_delete'),
+
     path('profile/', views.ProfileList.as_view(), name='profile_index'),
     # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),
   
@@ -40,5 +46,8 @@ urlpatterns = [
     path('login/', views.LoginView.as_view(), name='login'),
     
     path('user/<int:user_id>/info/', views.get_user_info, name="user_info"),
+
+    path('logout/', views.LogoutView.as_view(), name='logout'),
+
 
 ]
