@@ -32,13 +32,13 @@ class ProfileSerializer(serializers.ModelSerializer):
     model = Profile
     fields = '__all__'
 
-# class UserSerializer(serializers.ModelSerializer):
-#   jobs = JobSerializer(many=True)
-#   profile = ProfileSerializer()
-#   applications = ApplicationSerializer(many=True)
-#   class Meta:
-#     model = User
-#     fields = '__all__'
+class UserSerializer(serializers.ModelSerializer):
+  jobs = JobSerializer(many=True)
+  profile = ProfileSerializer()
+  applications = ApplicationSerializer(many=True)
+  class Meta:
+    model = User
+    fields = '__all__'
     
       
 class Job_categorySerializer(serializers.ModelSerializer):
