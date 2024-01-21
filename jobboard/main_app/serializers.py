@@ -7,6 +7,12 @@ class ApplicationSerializer(serializers.ModelSerializer):
     model = Application
     fields = '__all__'
     
+  def __init__(self, *args, **kwargs):
+        super(ApplicationSerializer, self).__init__(*args, **kwargs)
+        if 'instance' in self.context:
+          for field_name in ['user', 'job']:
+            self.fields[field_name].required = False
+    
 class SkillSerializer(serializers.ModelSerializer):
   class Meta:
     model = Skill
