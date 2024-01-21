@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer
+from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer , UserSerializer
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
@@ -16,6 +16,9 @@ from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
+from rest_framework.decorators import permission_classes
+from rest_framework import permissions
 
 # Create your views here.
 
@@ -128,24 +131,106 @@ class JobDelete(DeleteView):
 @csrf_exempt
 @api_view(['GET'])
 def application_list(request):
-    applications = Application.objects.filter(user_id=request.user)
-    serialized_applications = [ApplicationSerializer(instance=app).data for app in applications]
-    return Response({'success': True, 'applications': serialized_applications})
-    
+    applications = Application.objects.filter(user_id=request.user.id)
+    # serialized_applications = [ApplicationSerializer(instance=app).data for app in applications]
+    application_serializer = ApplicationSerializer(applications, many=True)
+    # return JsonResponse(application_serializer.data , safe=False)
+    serialized_data = application_serializer.data
+    return JsonResponse({'applications': serialized_data})
 @csrf_exempt
 @api_view(['GET'])
 def get_user_info(request,user_id):
     user_info = User.objects.get(id=user_id)
     user_serializer = UserSerializer(user_info)
-    return JsonResponse( user_serializer.data)
+    profile_info = Profile.objects.get(user = user_info)
+    # profile_info = get_object_or_404(Profile, user=user_info)
+    profile_serializer = ProfileSerializer(profile_info)
+    response_data = {
+        "user_info": user_serializer.data,
+        "profile_info": profile_serializer.data
+    }
+    return JsonResponse(response_data)
 
 @csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def application_create(request , user_id , job_id):
-    pass
+    user_id = request.user.id
+    print("user_id",request.user.id)
+    if 'resume' in request.FILES:
+        resume_file = request.FILES['resume']
+    if not resume_file.name.endswith('.pdf'):
+        return JsonResponse({"error": "Only PDF format is accepted"})   
     
+    application_data = {
+            'user': user_id,
+            'job': job_id,
+            'resume': resume_file
+        }
     
+    application_serializer = ApplicationSerializer(data=application_data)
+    if application_serializer.is_valid():
+            # Save the application to the database
+            application_serializer.save()
+
+            # Retrieve the serialized data of the created application
+            serialized_application = ApplicationSerializer(application_serializer.instance).data
+
+            return JsonResponse({
+                "message": "Application created successfully",
+                "application": serialized_application
+            })
+    else:
+            return JsonResponse({"error": application_serializer.errors})
+  
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def application_update(request):
+    application_id = request.GET.get('application_id')
+    application_info = Application.objects.get(id=application_id)
+    # making sure that the user who created the application is the one who's updating the application
+    if  request.user.id != application_info.user_id:
+        JsonResponse({"error" : "You are not authorized to update this application"})
+    if 'resume' in request.FILES:
+        resume_file = request.FILES['resume']
+    if not resume_file.name.endswith('.pdf'):
+        return JsonResponse({"error": "Only PDF format is accepted"})  
+        
+    print("Before assigning user:", application_info.user)
+    print("Before assigning job:", application_info.job)
+    application_info.resume = resume_file
+    application_info.user = request.user
+    print('user id in update application' , request.user)
+    application_info.job= application_info.job
+    print('job id in update application' ,  application_info.job)
+
     
+    application_serializer = ApplicationSerializer(instance=application_info, data=request.data , context={'instance':application_info})
+    if application_serializer.is_valid():
+        application_serializer.save()
+
+        # Retrieve the serialized data of the updated application
+        serialized_application = ApplicationSerializer(application_info).data
+
+        return JsonResponse({
+            "message": "Application updated successfully",
+            "application": serialized_application
+        })
+    else:
+        return JsonResponse({"error": application_serializer.errors})
+    
+# def application_delete(request):
+#     application_id = request.GET.get('application_id')
+#     try:
+#         application_info = Application.objects.get(id=application_id)
+#         application_info.delete()
+#         response_data = {'success': True, 'message': 'Application deleted successfully'}
+#     except ObjectDoesNotExist:
+#         response_data = {'success': False, 'message': 'Application not found'}
+#     return JsonResponse(response_data)
+
+
     # ApplicationForm(request.POST, request.FILES) 
     # if form.is_valid():
     #     new_application = form.save(commit=False) 
