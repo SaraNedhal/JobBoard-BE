@@ -27,7 +27,7 @@ urlpatterns = [
     path('company/<int:pk>/update/', views.CompanyUpdate.as_view(), name='company_update'),
     path('company/<int:pk>/delete/', views.CompanyDelete.as_view(), name='company_delete'),
 
-    path('application/' , views.application_index , name="application_index"),
+    path('application/' , views.application_list , name="application_list"),
     path('application/<int:user_id>/create/' , views.application_create, name="applications_create" ),
   
     path('accounts/signup/', views.signup, name='signup'),
