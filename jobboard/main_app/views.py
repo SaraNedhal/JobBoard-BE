@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 
+
 from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer
-from .models import Skill, Profile, Company, Job_category, Job, Application
+from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
 from rest_framework.decorators import api_view
@@ -15,11 +16,6 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
 # Create your views here.
@@ -31,8 +27,12 @@ def hello_world(request):
 # Job-Category views:
 
 class JobCategoryList(generics.ListAPIView):
-  queryset = Job_category.objects.all()
-  serializer_class = Job_categorySerializer
+    queryset = Job_category.objects.all()
+    serializer_class = Job_categorySerializer
+
+    def get(self, request, *args, **kwargs):
+        job_categories = Job_categorySerializer(self.get_queryset(), many=True).data
+        return Response(job_categories)
 
 
 class JobCategoryDetail(DetailView):
@@ -41,8 +41,8 @@ class JobCategoryDetail(DetailView):
 
 class JobCategoryCreate(generics.CreateAPIView):
     # model = Job_category
-  serializer_class = Job_categorySerializer
-  permission_class = [IsAuthenticated]
+    serializer_class = Job_categorySerializer
+    permission_class = [IsAuthenticated]
     
     # fields = ['category_name']
 
@@ -83,12 +83,52 @@ class JobDelete(DeleteView):
     model = Job
     success_url = '/jobs'
 
+# @api_view(['GET'])
+# def application_index(request):
+# #   applications = Application.objects.filter(user=request.user)
+# # just 4 tesing 
+#   applications = Application.objects.all()  
+#   return Response({'applications' : applications})
 
-def application_index(request):
-  pass
+@csrf_exempt
+@api_view(['GET'])
+def application_list(request):
+    applications = Application.objects.filter(user_id=request.user)
+    serialized_applications = [ApplicationSerializer(instance=app).data for app in applications]
+    return Response({'success': True, 'applications': serialized_applications})
+    
+@csrf_exempt
+@api_view(['GET'])
+def get_user_info(request,user_id):
+    user_info = User.objects.get(id=user_id)
+    user_serializer = UserSerializer(user_info)
+    return JsonResponse( user_serializer.data)
 
-def application_create(request):
-  pass
+@csrf_exempt
+@api_view(['POST'])
+def application_create(request , user_id , job_id):
+    pass
+    
+    
+    
+    # ApplicationForm(request.POST, request.FILES) 
+    # if form.is_valid():
+    #     new_application = form.save(commit=False) 
+    #     # get the job and user id from the url and add it as fk
+    #     # add fk manually
+    #     new_application.user_id = user_id
+    #     new_application.job_id = job_id
+    #     uploaded_file = request.FILES.get('resume')
+    #     if uploaded_file:
+    #         new_application.resume = uploaded_file
+        
+    #     new_application.save()
+    #     serialized_application = ApplicationForm(instance=new_application).data
+    #     # return JsonResponse()
+    #     # return Response({'success': True, 'application': serialized_application})
+    # else:
+    #     return Response({'success': False, 'errors': form.errors})
+
 
 class CompanyList(generics.ListAPIView):
   queryset = Company.objects.all()
@@ -101,6 +141,11 @@ class CompanyDetail(DetailView):
 class CompanyCreate(CreateView):
     model = Company
     fields = ['company_name', 'location', 'logo', 'email']
+    
+    def form_valid(self, form):
+      form.instance.user = self.request.user
+      # super() is calling the parent class
+      return super().form_valid(form)
 
 class CompanyUpdate(UpdateView):
     model = Company
@@ -191,3 +236,28 @@ class LoginView(APIView):
             return Response({'access_token': access_token, 'refresh_token': str(refresh)}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class SkillList(generics.ListAPIView):
+  queryset = Skill.objects.all()
+  serializer_class = SkillSerializer
+  model = Skill
+
+class SkillDetail(DetailView):
+    model = Skill
+
+class SkillCreate(CreateView):
+    model = Skill
+    fields = ['skill_name']
+    
+
+class SkillUpdate(UpdateView):
+    model = Skill
+    fields = ['skill_name']
+
+class SkillDelete(DeleteView):
+    model = Skill
+    
+class CompanyDelete(DeleteView):
+    model = Company
+    success_url = '/company/'
+    

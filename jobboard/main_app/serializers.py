@@ -25,6 +25,8 @@ class CompanySerializer(serializers.ModelSerializer):
   class Meta:
     model = Company
     fields = '__all__'
+    
+    
 class UserSerializer(serializers.ModelSerializer):
 #   jobs = JobSerializer(many=True)
 #   profile = ProfileSerializer()
@@ -40,6 +42,7 @@ class ProfileSerializer(serializers.ModelSerializer):
   class Meta:
     model = Profile
     fields = '__all__'
+
 
 class Job_categorySerializer(serializers.ModelSerializer):
   jobs = JobSerializer(many=True, read_only=True)
