@@ -32,8 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
   class Meta:
     model = User
     fields = ('pk','username', 'first_name', 'last_name')
-    
-      
+
 
 class ProfileSerializer(serializers.ModelSerializer):
   skills = SkillSerializer(many=True, read_only=True)

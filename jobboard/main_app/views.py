@@ -7,10 +7,10 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework import generics
@@ -119,6 +119,12 @@ class ProfileCreate(generics.CreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
+class ProfileUpdate(UpdateView):
+    models = Profile
+    fields = ['user.username', 'first_name', 'last_name', 'role', 'image', 'phone_number', 'skills']
+
+class ProfileDelete(DeleteView):
+    models = Profile
     
 # @csrf_exempt
 # def signup(request):
@@ -146,8 +152,8 @@ class RegistrationView(APIView):
         image = request.data.get('image')
 
 
-        if not username or not password or not email or not role or not first_name or not last_name or not phone_number:
-            return Response({'error': 'Both username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not username or not password or not email or not first_name or not last_name or not phone_number:
+            return Response({'error': 'username, password, email, frist name, last name, and phone number are required'}, status=status.HTTP_400_BAD_REQUEST)
         if role not in ('J', 'C'):
             role = 'J'
         # Create user
@@ -159,3 +165,29 @@ class RegistrationView(APIView):
         access_token = str(refresh.access_token)
 
         return Response({'access_token': access_token, 'refresh_token': str(refresh) }, status=status.HTTP_201_CREATED)
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        if not username or not password:
+            return Response({'error': 'Both username and password are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Authenticate user
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            # Login the user
+            login(request, user)
+
+            # Generate new tokens
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({'access_token': access_token, 'refresh_token': str(refresh)}, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
