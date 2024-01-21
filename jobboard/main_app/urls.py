@@ -27,8 +27,14 @@ urlpatterns = [
     path('company/<int:pk>/update/', views.CompanyUpdate.as_view(), name='company_update'),
     path('company/<int:pk>/delete/', views.CompanyDelete.as_view(), name='company_delete'),
 
-    path('application/' , views.application_index , name="application_index"),
+    path('application/' , views.application_list , name="application_list"),
     path('application/<int:user_id>/create/' , views.application_create, name="applications_create" ),
+
+    path('profile/', views.ProfileList.as_view(), name='profile_index'),
+    # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),
   
-    path('accounts/signup/', views.signup, name='signup'),
+    # path('accounts/signup/', views.signup, name='signup'),
+    path('signup/', views.RegistrationView.as_view(), name='signup'),
+    path('login/', views.LoginView.as_view(), name='login'),
+
 ]

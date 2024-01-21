@@ -30,6 +30,8 @@ class Profile(models.Model):
   image = models.ImageField(upload_to='main_app/static/uploads', default="")
   user = models.OneToOneField(User, on_delete=models.CASCADE)
   skills = models.ManyToManyField(Skill)
+  first_name = models.CharField(max_length=50)
+  last_name = models.CharField(max_length=50)
 
 
 class Company(models.Model):
