@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer
+from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer, User
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 
 # Create your views here.
 

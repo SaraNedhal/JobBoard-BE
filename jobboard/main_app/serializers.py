@@ -21,7 +21,7 @@ class JobSerializer(serializers.ModelSerializer):
       fields = '__all__'
 
 class CompanySerializer(serializers.ModelSerializer):
-  companies = JobSerializer(many=True)
+  # companies = JobSerializer(many=True)
   class Meta:
     model = Company
     fields = '__all__'
