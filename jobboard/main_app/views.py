@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer
+from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer, UserSerializer
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAuthenticated, AllowAny, AllowAny
@@ -16,6 +16,7 @@ from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 
 # Create your views here.
 
@@ -253,6 +254,8 @@ class RegistrationView(APIView):
         user = User.objects.create_user(username=username, password=password,)
         Profile.objects.create(email=email, user=user, role=role, first_name=first_name, last_name=last_name, phone_number=phone_number, image=image)
 
+        login(request, user)
+
         # Generate tokens
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
@@ -284,6 +287,15 @@ class LoginView(APIView):
             return Response({'access_token': access_token, 'refresh_token': str(refresh)}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Log out the user
+        logout(request)
+
+        return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
 
 class SkillList(generics.ListAPIView):
   queryset = Skill.objects.all()
@@ -293,17 +305,22 @@ class SkillList(generics.ListAPIView):
 class SkillDetail(DetailView):
     model = Skill
 
-class SkillCreate(CreateView):
-    model = Skill
-    fields = ['skill_name']
+class SkillCreate(generics.CreateAPIView):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    # model = Skill
+    # fields = ['skill_name']
     
 
-class SkillUpdate(UpdateView):
-    model = Skill
-    fields = ['skill_name']
+class SkillUpdate(generics.UpdateAPIView):
+    # model = Skill
+    # fields = ['skill_name']
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
 
-class SkillDelete(DeleteView):
-    model = Skill
+class SkillDelete(generics.DestroyAPIView):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
     
 class CompanyDelete(DeleteView):
     model = Company
