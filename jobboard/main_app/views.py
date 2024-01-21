@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .serializers import Job_categorySerializer , JobSerializer , CompanySerializer , SkillSerializer , ProfileSerializer , ApplicationSerializer, User, UserSerializer
+from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer, SkillSerializer, ProfileSerializer, ApplicationSerializer, UserSerializer
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
@@ -12,11 +12,12 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAuthenticated, AllowAny, AllowAny
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import permission_classes
+from rest_framework import permissions
 from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.views import APIView
 from rest_framework.views import APIView
 
 # Create your views here.
@@ -101,16 +102,35 @@ class JobDetail(DetailView):
         job= JobSerializer(self.get_queryset()).data
         return Response(job)
 
-class JobCreate(CreateView):
+# class JobCreate(generics.CreateAPIView):
+#     queryset = Job.objects.all()
+#     serializer_class = JobSerializer
+
+#     def perform_create(self, serializer):
+#         # Exclude 'user' from validated_data during creation
+#         user = self.request.user if self.request.user.is_authenticated else None
+#         serializer.save(user=user)
+
+class JobCreate(generics.CreateAPIView):
+    # model = Job_category
     serializer_class = JobSerializer
     permission_class = [IsAuthenticated]
     
-    # fields = ['job_title', 'job_description', 'job_salary']
-
+    # fields = ['category_name']
     def form_valid(self, form):
         instance = form.save(commit=False)
         job = self.serializer_class(instance)
         return Response(job)
+    
+# class JobCreate(LoginRequiredMixin, CreateView):
+#     serializer_class = JobSerializer
+    
+#     # fields = ['job_title', 'job_description', 'job_salary']
+
+#     def form_valid(self, form):
+#         instance = form.save(commit=False)
+#         job = self.serializer_class(instance)
+#         return Response(job)
 
 
 class JobUpdate(UpdateView):
