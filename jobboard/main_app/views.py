@@ -24,6 +24,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 
@@ -337,6 +338,7 @@ class CompanyCreate(generics.CreateAPIView):
     serializer_class = CompanySerializer
     # permission_class = [IsAuthenticated]
     queryset = Company.objects.all()
+    parser_classes = (MultiPartParser, FormParser)
     
     
     # fields = ['company_name', 'location', 'logo', 'email']
