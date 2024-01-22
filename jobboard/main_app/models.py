@@ -56,7 +56,7 @@ class Job(models.Model):
   job_salary = models.DecimalField(decimal_places=2,max_digits=12)
   job_created_at = models.DateTimeField(auto_now_add=True)
   job_updated_at = models.DateTimeField(auto_now=True)
-  user = models.ForeignKey(User, on_delete=models.CASCADE)
+  user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
   company = models.ForeignKey(Company, on_delete=models.CASCADE)
   job_category = models.ForeignKey(Job_category, on_delete=models.CASCADE)
   skills = models.ManyToManyField(Skill)

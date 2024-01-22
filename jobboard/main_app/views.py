@@ -19,8 +19,9 @@ from rest_framework import status
 from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import permission_classes
-from rest_framework import permissions
+from rest_framework.views import APIView
+from rest_framework.decorators import parser_classes
+from rest_framework.parsers import JSONParser
 
 # Create your views here.
 
@@ -45,6 +46,7 @@ class JobCategoryDetail(DetailView):
     def get(self, request, *args, **kwargs):
         job_category = Job_categorySerializer(self.get_queryset()).data
         return Response(job_category)
+
 
 
 class JobCategoryCreate(generics.CreateAPIView):
@@ -113,16 +115,36 @@ class JobDetail(DetailView):
 #         user = self.request.user if self.request.user.is_authenticated else None
 #         serializer.save(user=user)
 
+
+@parser_classes([JSONParser])
 class JobCreate(generics.CreateAPIView):
-    # model = Job_category
     serializer_class = JobSerializer
-    permission_class = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        user = self.request.user if self.request.user.is_authenticated else None
+
+        # Convert skills to list if provided as a comma-separated string
+        if 'skills' in request.data and isinstance(request.data['skills'], str):
+            request.data['skills'] = [skill.strip() for skill in request.data['skills'].split(',')]
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-    # fields = ['category_name']
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        job = self.serializer_class(instance)
-        return Response(job)
+# class JobCreate(generics.CreateAPIView):
+#     # model = Job_category
+#     serializer_class = JobSerializer
+#     permission_class = [IsAuthenticated]
+    
+#     # fields = ['category_name']
+#     def form_valid(self, form):
+#         instance = form.save(commit=False)
+#         job = self.serializer_class(instance)
+#         return Response(job)
     
 # class JobCreate(LoginRequiredMixin, CreateView):
 #     serializer_class = JobSerializer
@@ -160,6 +182,7 @@ def application_list(request):
     # return JsonResponse(application_serializer.data , safe=False)
     serialized_data = application_serializer.data
     return JsonResponse({'applications': serialized_data})
+
 @csrf_exempt
 @api_view(['GET'])
 def get_user_info(request,user_id):
@@ -243,7 +266,8 @@ def application_update(request):
     else:
         return JsonResponse({"error": application_serializer.errors})
     
-# def application_delete(request):
+def application_delete(request):
+    pass
 #     application_id = request.GET.get('application_id')
 #     try:
 #         application_info = Application.objects.get(id=application_id)
