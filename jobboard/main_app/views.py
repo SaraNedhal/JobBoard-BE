@@ -20,6 +20,8 @@ from rest_framework import generics
 from django.contrib.auth.mixins import LoginRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from django.core.exceptions import ObjectDoesNotExist 
+
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser
 
@@ -265,9 +267,23 @@ def application_update(request):
         })
     else:
         return JsonResponse({"error": application_serializer.errors})
-    
+
+@csrf_exempt
+@api_view(['GET'])  
 def application_delete(request):
-    pass
+    application_id = request.GET.get('application_id')
+    print('application_id =' , application_id )
+    try:
+        application_info = Application.objects.get(id=application_id)
+        print('applicatoin_info' , application_info)
+        application_info.delete()
+        response_data = {'success': True, 'message': ' Your application deleted successfully'}
+    except ObjectDoesNotExist as e:
+        print(f'Application.DoesNotExist: {str(e)}')
+        response_data = {'success': False, 'message': 'Application not found'}
+    return JsonResponse(response_data)
+
+# def application_delete(request):
 #     application_id = request.GET.get('application_id')
 #     try:
 #         application_info = Application.objects.get(id=application_id)
@@ -276,6 +292,7 @@ def application_delete(request):
 #     except ObjectDoesNotExist:
 #         response_data = {'success': False, 'message': 'Application not found'}
 #     return JsonResponse(response_data)
+
 
 
     # ApplicationForm(request.POST, request.FILES) 

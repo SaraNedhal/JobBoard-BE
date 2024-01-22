@@ -15,7 +15,16 @@ ROLES = (
   ('C' , 'Company admin')
 )
 
-  
+STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+    )
+
+REQUEST_DESCRIPTION_CHOICES = (
+  ('1', 'Premession to be a company admin'),
+  ('2', 'demote the user to a job seeker')
+)
 class Skill(models.Model):
   skill_name = models.CharField(max_length=100)
 
@@ -73,6 +82,11 @@ class Application(models.Model):
   job = models.ForeignKey(Job, on_delete = models.CASCADE)
   user = models.ForeignKey(User, on_delete=models.CASCADE)
 
+class Admin_Requests(models.Model):
+  user= models.ForeignKey(User, on_delete=models.CASCADE)
+  status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_CHOICES[0][0])
+  request_description = models.CharField(max_length=2, choices=REQUEST_DESCRIPTION_CHOICES)
+  date=models.DateTimeField(auto_now_add=True)
 
 
 
