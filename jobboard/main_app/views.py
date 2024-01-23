@@ -25,8 +25,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.parsers import MultiPartParser, FormParser
-
+from django.contrib.auth.decorators import permission_required
+from .decorator import allowed_users
 # Create your views here.
+from django.utils.decorators import method_decorator
 
 @api_view(['GET'])
 def hello_world(request):
@@ -51,7 +53,8 @@ class JobCategoryDetail(DetailView):
         return Response(job_category)
 
 
-
+# @allowed_users(['A'])
+@method_decorator(allowed_users([]), name='dispatch')
 class JobCategoryCreate(generics.CreateAPIView):
     # model = Job_category
     serializer_class = Job_categorySerializer
@@ -176,6 +179,7 @@ class JobDelete(DeleteView):
 #   applications = Application.objects.all()  
 #   return Response({'applications' : applications})
 
+@allowed_users(['J'])
 @csrf_exempt
 @api_view(['GET'])
 def application_list(request):
@@ -446,13 +450,63 @@ class CompanyDetail(generics.RetrieveAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
-class CompanyCreate(generics.CreateAPIView):
-    serializer_class = CompanySerializer
-    # permission_class = [IsAuthenticated]
-    queryset = Company.objects.all()
-    parser_classes = (MultiPartParser, FormParser)
+# class CompanyCreate(generics.CreateAPIView):
+#     serializer_class = CompanySerializer
+#     # permission_class = [IsAuthenticated]
+#     queryset = Company.objects.all()
+#     parser_classes = (MultiPartParser, FormParser)
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def company_create(request):
+    try:
+        user_id = request.user.id
+        company_name = request.data['company_name']
+        location = request.data['location']
+        logo = request.FILES['logo']
+        email = request.data['email']
+        
+        company = Company.objects.create(
+            user_id=user_id,
+            company_name=company_name,
+            location=location,
+            logo=logo,
+            email=email
+        )    
+        serialized_company_data = CompanySerializer(company)
+        return JsonResponse(serialized_company_data.data)
+    except  Exception as e:
+        return JsonResponse({'message': str(e)})
     
-    
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def company_update(request):
+        company_id = request.GET.get('company_id')
+        company_info = Company.objects.get(id = company_id)
+        
+        company_info.company_name = request.data.get('company_name')
+        company_info.location = request.data.get('location')
+        company_info.logo = request.FILES.get('logo')
+        company_info.email = request.data.get('email')
+        
+        serialized_data = CompanySerializer(instance=company_info , data=request.data, context={'instance':company_info})
+        
+        if serialized_data.is_valid():
+            serialized_data.save()
+        
+            updated_serialized_company = CompanySerializer(company_info).data
+            
+            return JsonResponse({
+                "message": "Company updated successfully",
+                "company": updated_serialized_company
+            })
+        else:
+            return JsonResponse({"error": updated_serialized_company.errors})
+   
+        
+        
+     
     # fields = ['company_name', 'location', 'logo', 'email']
 
     # def form_valid(self, form):
@@ -610,5 +664,31 @@ def get_jobs_by_category(request):
     except Exception as e:
         return JsonResponse({'message': str(e)})
     
-    
-    
+@csrf_exempt
+@api_view(['GET'])
+def get_user_role(request):
+    user_id = request.user.id
+    print("user_id", user_id)
+    try:
+        user_role = Profile.objects.filter(user_id = user_id).values_list('role')[0]
+        # user_role = Profile.objects.filter
+        # user_role = Profile.objects.values_list('role', flat=True)[0]
+        print('user_role ' , user_role)
+        # profile_serializer = ProfileSerializer(user_role)
+        return JsonResponse(user_role[0], safe=False)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+
+@csrf_exempt
+@api_view(['GET'])
+def get_jobs_by_company(request):
+    company_id = request.GET.get('id')
+    try:
+        company_jobs = Job.objects.filter(company_id = company_id)
+        company_job_serializer = JobSerializer(company_jobs , many=True)
+        job_company_response = {
+            'jobs': company_job_serializer.data
+        }
+        return JsonResponse(job_company_response)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})

@@ -48,7 +48,7 @@ class Company(models.Model):
   location = models.CharField(max_length=200)
   logo = models.ImageField(upload_to='main_app/static/uploads', default="")
   email = models.EmailField(max_length = 254)
-  user = models.OneToOneField(User, on_delete=models.CASCADE)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
 
   def __str__(self):
     return self.company_name
@@ -66,7 +66,7 @@ class Job(models.Model):
   job_salary = models.DecimalField(decimal_places=2,max_digits=12)
   job_created_at = models.DateTimeField(auto_now_add=True)
   job_updated_at = models.DateTimeField(auto_now=True)
-  user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+  user = models.ForeignKey(User, on_delete=models.CASCADE)
   company = models.ForeignKey(Company, on_delete=models.CASCADE)
   job_category = models.ForeignKey(Job_category, on_delete=models.CASCADE)
   skills = models.ManyToManyField(Skill)
