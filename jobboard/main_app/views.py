@@ -5,7 +5,6 @@ from .serializers import Job_categorySerializer, JobSerializer, CompanySerialize
 
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.views.generic import ListView, DetailView
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth import login, authenticate, logout
@@ -45,12 +44,21 @@ class JobCategoryList(generics.ListAPIView):
     #     return Response(job_categories)
  
 
-class JobCategoryDetail(DetailView):
-    model = Job_category
+class JobCategoryDetail(generics.RetrieveAPIView):
+    queryset = Job_category.objects.all()
+    serializer_class = Job_categorySerializer
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response_data = {
+            "message": "job category details retrieved successfully",
+            "job_category": serializer.data
+        }
+        return JsonResponse(response_data)
 
-    def get(self, request, *args, **kwargs):
-        job_category = Job_categorySerializer(self.get_queryset()).data
-        return Response(job_category)
+    # def get(self, request, *args, **kwargs):
+    #     job_category = Job_categorySerializer(self.get_queryset()).data
+    #     return Response(job_category)
 
 
 # @allowed_users(['A'])
@@ -105,12 +113,18 @@ class JobList(generics.ListAPIView):
     #     return Response(job_list)
 
 
-class JobDetail(DetailView):
-    model = Job
+class JobDetail(generics.RetrieveAPIView):
+    queryset = Job.objects.all()
+    serializer_class = JobSerializer
 
-    def get(self, request, *args, **kwargs):
-        job= JobSerializer(self.get_queryset()).data
-        return Response(job)
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response_data = {
+            "message": "job details retrieved successfully",
+            "job": serializer.data
+        }
+        return JsonResponse(response_data)
 
 # class JobCreate(generics.CreateAPIView):
 #     queryset = Job.objects.all()
@@ -146,12 +160,13 @@ class JobDetail(DetailView):
 def job_create(request):
     try:
         user_id = request.user.id
+        print('user_id ' , user_id)
         job_category = request.GET.get('category_id')
         company_id = request.GET.get('company_id')
         job_title = request.data['job_title']
         job_description = request.data['job_description']
         job_salary = request.data['job_salary']
-        skills= request.data.getlist('skills')
+        skills= request.data.get('skills')
         
         job = Job.objects.create(
             user_id = user_id,
@@ -194,15 +209,47 @@ def job_create(request):
 #         return Response(job)
 
 
-class JobUpdate(UpdateView):
-    model = Job
-    fields = ['job_title', 'job_description', 'job_salary']
+# class JobUpdate(UpdateView):
+#     model = Job
+#     fields = ['job_title', 'job_description', 'job_salary']
 
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def job_update(request):
+    job_id = request.GET.get('job_id')
+    job_category = request.GET.get('category_id')
+    job_info = Job.objects.get(id=job_id)
+    if 'job_title' in request.data:
+        job_info.job_title = request.data.get('job_title')
+    if 'job_description' in request.data:
+        job_info.job_description = request.data.get('job_description')
+    if 'job_salary' in request.data:
+        job_info.job_salary = request.data.get('job_salary')
+    if 'skills' in request.data:
+        skills = request.data.get('skills')   
+        job_info.skills.set(skills)  
+    job_info.job_category_id = job_category
+    serialized_data = JobSerializer(instance=job_info, data=request.data , partial=True , context={'instance':job_info})
+    # if the serlized version of the updated job has valid inputs
+    if serialized_data.is_valid():
+        # store it in the database
+        serialized_data.save()
+        
+        updated_serialized_job = JobSerializer(job_info).data
+        
+        return JsonResponse({
+             "message": "Job updated successfully",
+                "job":updated_serialized_job
+        })
+    else:
+        return JsonResponse({"error": updated_serialized_job.errors})
+   
+        
 
-class JobDelete(DeleteView):
-    model = Job
-    success_url = '/jobs'
-
+class JobDelete(generics.DestroyAPIView):
+    serializer_class = JobSerializer
+    queryset = Job.objects.all()
 # @api_view(['GET'])
 # def application_index(request):
 # #   applications = Application.objects.filter(user=request.user)
@@ -290,7 +337,7 @@ def application_update(request):
     print('job id in update application' ,  application_info.job)
 
     
-    application_serializer = ApplicationSerializer(instance=application_info, data=request.data , context={'instance':application_info})
+    application_serializer = ApplicationSerializer(instance=application_info, data=request.data , partial=True, context={'instance':application_info})
     if application_serializer.is_valid():
         application_serializer.save()
 
@@ -480,6 +527,14 @@ class CompanyList(generics.ListAPIView):
 class CompanyDetail(generics.RetrieveAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response_data = {
+            "message": "Company details retrieved successfully",
+            "company": serializer.data
+        }
+        return JsonResponse(response_data)
 
 # class CompanyCreate(generics.CreateAPIView):
 #     serializer_class = CompanySerializer
@@ -666,9 +721,17 @@ class SkillList(generics.ListAPIView):
     #     skills = SkillSerializer(self.get_queryset(), many=True).data
     #     return Response(skills)
 
-class SkillDetail(DetailView):
-    model = Skill
-
+class SkillDetail(generics.RetrieveAPIView):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response_data = {
+            "message": "skill details retrieved successfully",
+            "skill": serializer.data
+        }
+        return JsonResponse(response_data)
 class SkillCreate(generics.CreateAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
