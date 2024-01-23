@@ -122,24 +122,55 @@ class JobDetail(DetailView):
 #         serializer.save(user=user)
 
 
-@parser_classes([JSONParser])
-class JobCreate(generics.CreateAPIView):
-    serializer_class = JobSerializer
-    permission_classes = [IsAuthenticated]
+# @parser_classes([JSONParser])
+# class JobCreate(generics.CreateAPIView):
+#     serializer_class = JobSerializer
+#     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        user = self.request.user if self.request.user.is_authenticated else None
+#     def create(self, request, *args, **kwargs):
+#         user = self.request.user if self.request.user.is_authenticated else None
 
-        # Convert skills to list if provided as a comma-separated string
-        if 'skills' in request.data and isinstance(request.data['skills'], str):
-            request.data['skills'] = [skill.strip() for skill in request.data['skills'].split(',')]
+#         # Convert skills to list if provided as a comma-separated string
+#         if 'skills' in request.data and isinstance(request.data['skills'], str):
+#             request.data['skills'] = [skill.strip() for skill in request.data['skills'].split(',')]
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=user)
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save(user=user)
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+#         headers = self.get_success_headers(serializer.data)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def job_create(request):
+    try:
+        user_id = request.user.id
+        job_category = request.GET.get('category_id')
+        company_id = request.GET.get('company_id')
+        job_title = request.data['job_title']
+        job_description = request.data['job_description']
+        job_salary = request.data['job_salary']
+        skills= request.data.getlist('skills')
+        
+        job = Job.objects.create(
+            user_id = user_id,
+            job_title = job_title,
+            job_description = job_description,
+            job_salary = job_salary,
+            job_category_id = job_category,
+            company_id = company_id
+        )
+        # skills has a many to many relation with the job so the skills will be added to the job
+        job.skills.set(skills)
+        
+        serilaized_job_data = JobSerializer(job) 
+        return JsonResponse(serilaized_job_data.data)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+   
+    
+    
     
 # class JobCreate(generics.CreateAPIView):
 #     # model = Job_category
@@ -484,13 +515,17 @@ def company_create(request):
 def company_update(request):
         company_id = request.GET.get('company_id')
         company_info = Company.objects.get(id = company_id)
+        if 'company_name' in request.data:
+            company_info.company_name = request.data.get('company_name')
+        if 'location' in request.data:
+            company_info.location = request.data.get('location')
+        if 'logo' in request.FILES:
+            company_info.logo = request.FILES.get('logo')
+        if 'email' in request.data:
+            company_info.email = request.data.get('email')
         
-        company_info.company_name = request.data.get('company_name')
-        company_info.location = request.data.get('location')
-        company_info.logo = request.FILES.get('logo')
-        company_info.email = request.data.get('email')
-        
-        serialized_data = CompanySerializer(instance=company_info , data=request.data, context={'instance':company_info})
+        serialized_data = CompanySerializer(instance=company_info , data=request.data, 
+                                            partial=True, context={'instance':company_info})
         
         if serialized_data.is_valid():
             serialized_data.save()
