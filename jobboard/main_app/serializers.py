@@ -19,7 +19,7 @@ class SkillSerializer(serializers.ModelSerializer):
     fields = '__all__'
   
 class JobSerializer(serializers.ModelSerializer):
-    # applications = ApplicationSerializer(many=True)
+    applications = ApplicationSerializer(many=True)
     skills = SkillSerializer(many=True, read_only=True)
     
     class Meta:
@@ -36,20 +36,6 @@ class JobSerializer(serializers.ModelSerializer):
         representation['skills'] = SkillSerializer(instance.skills.all(), many=True).data
         return representation
 
-class CompanySerializer(serializers.ModelSerializer):
-  class Meta:
-    model = Company
-    fields = '__all__'
-
-    
-    
-class UserSerializer(serializers.ModelSerializer):
-#   jobs = JobSerializer(many=True)
-#   profile = ProfileSerializer()
-#   applications = ApplicationSerializer(many=True)
-  class Meta:
-    model = User
-    fields = ('pk','username', 'first_name', 'last_name')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -58,6 +44,28 @@ class ProfileSerializer(serializers.ModelSerializer):
   class Meta:
     model = Profile
     fields = '__all__'
+  
+    
+class UserSerializer(serializers.ModelSerializer):
+  # jobs = JobSerializer(many=True)
+  # profile = ProfileSerializer()
+  # applications = ApplicationSerializer(many=True)
+  class Meta:
+    model = User
+    fields = ('pk','username', 'first_name', 'last_name')
+
+class CompanySerializer(serializers.ModelSerializer):
+      # user = UserSerializer(required = True)
+    class Meta:
+        model = Company
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super(CompanySerializer, self).__init__(*args, **kwargs)
+        if 'instance' in self.context:
+          for field_name in ['user']:
+            self.fields[field_name].required = False
+      
 
 
 class Job_categorySerializer(serializers.ModelSerializer):
