@@ -41,11 +41,12 @@ urlpatterns = [
     path('skill/<int:pk>/delete', views.SkillDelete.as_view(), name='skill_delete'),
 
     path('profile/', views.ProfileList.as_view(), name='profile_index'),
-    # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),
   
     # path('accounts/signup/', views.signup, name='signup'),
     path('signup/', views.RegistrationView.as_view(), name='signup'),
     path('login/', views.LoginView.as_view(), name='login'),
+    path('profile_update/<int:pk>/', views.ProfileUpdate.as_view(), name='profile_update'),
+    path('profile_list/', views.ProfileList.as_view(), name='profile_list'),
     
     path('user/<int:user_id>/info/', views.get_user_info, name="user_info"),
 

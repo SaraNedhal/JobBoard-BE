@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer, SkillSerializer, ProfileSerializer, ApplicationSerializer, UserSerializer
+from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer, SkillSerializer, ProfileSerializer, ApplicationSerializer, UserSerializer, UpdateProfileSerializer
 
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -363,22 +363,7 @@ class CompanyDelete(generics.DestroyAPIView):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
 
-class ProfileList(generics.ListAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
 
-
-class ProfileCreate(generics.CreateAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-
-class ProfileUpdate(generics.UpdateAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-
-class ProfileDelete(generics.DestroyAPIView):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
     
 # @csrf_exempt
 # def signup(request):
@@ -424,7 +409,7 @@ class RegistrationView(APIView):
 
 
 class LoginView(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
 
     def post(self, request):
         username = request.data.get('username')
@@ -456,6 +441,93 @@ class LogoutView(APIView):
         logout(request)
 
         return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
+    
+class ProfileList(generics.ListAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+
+
+
+class ProfileUpdate(generics.UpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = UpdateProfileSerializer
+
+
+# class UserProfileView(APIView):
+#     def put(self, request, *args, **kwargs):
+#         user = request.user
+#         user_serializer = UserUpdateSerializer(user, data=request.data)
+#         print('serialized')
+
+#         print(user_serializer)
+#         if user_serializer.is_valid():
+#             print('valid')
+#             # Update the user fields
+#             user_serializer.save()
+#             print('saved')
+#             # Update the user profile fields
+#             profile_data = user_serializer.validated_data.pop('profile', {})
+#             profile_serializer = UpdateProfileSerializer(user.profile, data=profile_data, partial=True)
+#             print("Profile serializer")
+#             if profile_serializer.is_valid():
+#                 print("Profile serializer valid")
+#                 profile_serializer.save()
+#                 print("profile serializer saved")
+#                 return Response(user_serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#         return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class ProfileUserUpdate(generics.UpdateAPIView):
+#     queryset = Profile.objects.all()
+#     serializer_class = ProfileUpdateSerializer
+
+# class UserProfileUpdateView(APIView):
+#     serializer_class = UserUpdateSerializer
+
+#     def put(self, request, *args, **kwargs):
+#         user = self.request.user
+#         serializer = self.serializer_class(data=request.data)
+
+#         if serializer.is_valid():
+#             # old_password = serializer.validated_data.get('old_password')
+#             new_username = serializer.validated_data.get('new_username')
+#             # new_password = serializer.validated_data.get('new_password')
+#             # confirm_password = serializer.validated_data.get('confirm_password')
+
+#             # # Validate old password
+#             # if old_password and not user.check_password(old_password):
+#             #     return Response({'error': 'Incorrect old password'}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # # Check if new password and confirm password match
+#             # if new_password and new_password != confirm_password:
+#             #     return Response({'error': 'New password and confirm password do not match'}, status=status.HTTP_400_BAD_REQUEST)
+
+#             # Set the new username
+#             if new_username:
+#                 user.username = new_username
+
+#             # Set the new password
+#             # if new_password:
+#             #     user.set_password(new_password)
+
+#             # Update other profile fields
+#             user.profile.email = serializer.validated_data.get('email', user.profile.email)
+#             user.profile.profile.phone_number = serializer.validated_data.get('phone_number', user.profile.profile.phone_number)
+#             user.profile.first_name = serializer.validated_data.get('first_name', user.profile.first_name)
+#             user.profile.last_name = serializer.validated_data.get('last_name', user.profile.last_name)
+#             user.profile.image = serializer.validated_data.get('image', user.profile.image)
+
+#             user.save()
+
+#             return Response({'success': 'User profile updated successfully'}, status=status.HTTP_200_OK)
+#         else:
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProfileDelete(generics.DestroyAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
 class SkillList(generics.ListAPIView):
     queryset = Skill.objects.all()
