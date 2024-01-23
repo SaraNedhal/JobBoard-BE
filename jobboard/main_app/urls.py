@@ -14,6 +14,7 @@ urlpatterns = [
     path('job_categories/create/', views.JobCategoryCreate.as_view(), name='job_category_create'),
     path('job_categories/<int:pk>/update/', views.JobCategoryUpdate.as_view(), name='job_category_update'),
     path('job_categories/<int:pk>/delete/', views.JobCategoryDelete.as_view(), name='job_category_delete'),
+    path('job_categories/browse/jobs/' , views.get_jobs_by_category, name="get_jobs_by_category"),
 
     # Paths for all the CRUD Operations for jobs - CBVs
     path('jobs/', views.JobList.as_view(), name='jobs_index'),
@@ -21,6 +22,8 @@ urlpatterns = [
     path('jobs/create/', views.JobCreate.as_view(), name='jobs_create'),
     path('jobs/<int:pk>/update/', views.JobUpdate.as_view(), name='jobs_update'),
     path('jobs/<int:pk>/delete/', views.JobDelete.as_view(), name='jobs_delete'),
+    path('jobs/assoc_job/', views.assoc_job, name='assoc_job'),
+    path('jobs/unassoc_job/', views.unassoc_job, name='unassoc_job'),
 
      # Paths for all the CRUD Operations for Company Model - CBVs
     path('company/', views.CompanyList.as_view(), name='company_index'),
@@ -42,6 +45,9 @@ urlpatterns = [
 
     path('profile/', views.ProfileList.as_view(), name='profile_index'),
     # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),
+    path('profile/assoc_profile/', views.assoc_profile, name='assoc_profile'),
+    path('profile/unassoc_profile/', views.unassoc_profile, name='unassoc_profile'),
+
   
     # path('accounts/signup/', views.signup, name='signup'),
     path('signup/', views.RegistrationView.as_view(), name='signup'),
