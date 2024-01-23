@@ -24,6 +24,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser
+from rest_framework.parsers import MultiPartParser, FormParser
 
 # Create your views here.
 
@@ -322,52 +323,62 @@ class CompanyList(generics.ListAPIView):
     #     company_list = CompanySerializer(self.get_queryset(), many=True).data
     #     return Response(company_list)
 
-class CompanyDetail(DetailView):
-    model = Company
+# class CompanyDetail(DetailView):
+#     model = Company
 
-    def get(self, request, *args, **kwargs):
-        company = CompanySerializer(self.get_queryset()).data
-        return Response(company)
+#     def get(self, request, *args, **kwargs):
+#         company = CompanySerializer(self.get_queryset()).data
+#         return Response(company)
+    
+class CompanyDetail(generics.RetrieveAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
 
-class CompanyCreate(CreateView):
-    serializer_class = JobSerializer
-    permission_class = [IsAuthenticated]
+class CompanyCreate(generics.CreateAPIView):
+    serializer_class = CompanySerializer
+    # permission_class = [IsAuthenticated]
+    queryset = Company.objects.all()
+    parser_classes = (MultiPartParser, FormParser)
+    
     
     # fields = ['company_name', 'location', 'logo', 'email']
 
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        job = self.serializer_class(instance)
-        return Response(job)
+    # def form_valid(self, form):
+    #     instance = form.save(commit=False)
+    #     job = self.serializer_class(instance)
+    #     return Response(job)
     
     # def form_valid(self, form):
     #   form.instance.user = self.request.user
     #   # super() is calling the parent class
     #   return super().form_valid(form)
 
-class CompanyUpdate(UpdateView):
-    model = Company
-    fields = ['company_name', 'location', 'logo', 'email']
+class CompanyUpdate(generics.UpdateAPIView):
+    serializer_class = CompanySerializer
+    queryset = Company.objects.all()
+    # model = Company
+    # fields = ['company_name', 'location', 'logo', 'email']
 
-class CompanyDelete(DeleteView):
-    model = Company
-    success_url = '/company/'
+class CompanyDelete(generics.DestroyAPIView):
+    serializer_class = CompanySerializer
+    queryset = Company.objects.all()
 
 class ProfileList(generics.ListAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
-@login_required
+
 class ProfileCreate(generics.CreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
 
-class ProfileUpdate(UpdateView):
-    models = Profile
-    fields = ['user.username', 'first_name', 'last_name', 'role', 'image', 'phone_number', 'skills']
+class ProfileUpdate(generics.UpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
-class ProfileDelete(DeleteView):
-    models = Profile
+class ProfileDelete(generics.DestroyAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
     
 # @csrf_exempt
 # def signup(request):
@@ -474,7 +485,4 @@ class SkillDelete(generics.DestroyAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     
-class CompanyDelete(DeleteView):
-    model = Company
-    success_url = '/company/'
-    
+

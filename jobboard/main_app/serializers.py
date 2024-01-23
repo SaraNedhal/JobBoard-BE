@@ -37,10 +37,10 @@ class JobSerializer(serializers.ModelSerializer):
         return representation
 
 class CompanySerializer(serializers.ModelSerializer):
-  # companies = JobSerializer(many=True)
   class Meta:
     model = Company
     fields = '__all__'
+
     
     
 class UserSerializer(serializers.ModelSerializer):
