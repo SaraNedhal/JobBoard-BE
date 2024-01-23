@@ -48,6 +48,7 @@ class Company(models.Model):
   location = models.CharField(max_length=200)
   logo = models.ImageField(upload_to='main_app/static/uploads', default="")
   email = models.EmailField(max_length = 254)
+  user = models.OneToOneField(User, on_delete=models.CASCADE)
 
   def __str__(self):
     return self.company_name

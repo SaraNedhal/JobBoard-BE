@@ -240,6 +240,118 @@ def application_delete(request):
         response_data = {'success': False, 'message': 'Application not found'}
     return JsonResponse(response_data)
 
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])  
+@api_view(['POST'])  
+def assoc_job(request):
+    job_id = request.GET.get('job_id')
+    print('job_id', job_id)
+    skill_id=request.GET.get('skill_id')
+    print('skill_id', skill_id)
+    try:
+        job = Job.objects.get(id=job_id)
+        skill = Skill.objects.get(id=skill_id)
+        print('skill', skill )
+
+            # Add the skill to the job's skills
+        job.skills.add(skill)
+        print('job', job)
+        print('added job to skill' , job.skills.add(skill))
+        job_serializer = JobSerializer(job)
+        return JsonResponse({
+            'message': "The skill has been added successfully from the job",
+            'job': job_serializer.data
+        })    
+    except Job.DoesNotExist:
+        return JsonResponse({'message': 'Job not found'})
+
+    except Skill.DoesNotExist:
+        return JsonResponse({'message': 'Skill not found'})
+
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+    
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])  
+@api_view(['POST'])  
+def unassoc_job(request):
+    job_id = request.GET.get('job_id')
+    print('job_id', job_id)
+    skill_id=request.GET.get('skill_id')
+    print('skill_id', skill_id)
+    try:
+        job = Job.objects.get(id=job_id)
+        skill = Skill.objects.get(id=skill_id)
+        print('skill', skill )
+
+            # Add the skill to the job's skills
+        job.skills.remove(skill)
+        print('job', job)
+        job_serializer = JobSerializer(job)
+        return JsonResponse({
+            'message': "The skill has been removed successfully from the job ",
+            'job': job_serializer.data
+        })  
+    except Job.DoesNotExist:
+        return JsonResponse({'message': 'Job not found'})
+
+    except Skill.DoesNotExist:
+        return JsonResponse({'message': 'Skill not found'})
+
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+
+
+@csrf_exempt
+@api_view(['POST'])    
+@permission_classes([permissions.IsAuthenticated])  
+def assoc_profile(request):
+    user_id = request.user.id
+    print('user_id', user_id)
+    skill_id = request.GET.get('skill_id')
+    print('skill_id', skill_id)
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        print('profile_info', profile)
+        # skill = Skill.objects.get(id=skill_id)
+        profile.skills.add(skill_id)
+        profile_serializer = ProfileSerializer(profile)
+        return JsonResponse({
+            'message': "The skill has been removed successfully from the User Profile",
+            'profile': profile_serializer.data
+        })      
+    except Profile.DoesNotExist:
+        return JsonResponse({'message' : "profile does not exist"})
+    except Skill.DoesNotExist:
+        return JsonResponse({'message' : "skill does not exist"})
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])  
+@api_view(['POST']) 
+def unassoc_profile(request):
+    user_id = request.user.id
+    print('user_id', user_id)
+    skill_id = request.GET.get('skill_id')
+    print('skill_id', skill_id)
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        print('profile_info', profile)
+        # skill = Skill.objects.get(id=skill_id)
+        profile.skills.remove(skill_id)
+        profile_serializer = ProfileSerializer(profile)
+        return JsonResponse({
+            'message': "The skill has been removed successfully from the User Profile",
+            'profile': profile_serializer.data
+        }) 
+    except Profile.DoesNotExist:
+        return JsonResponse({'message' : "profile does not exist"})
+    except Skill.DoesNotExist:
+        return JsonResponse({'message' : "skill does not exist"})
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+        
 
     # ApplicationForm(request.POST, request.FILES) 
     # if form.is_valid():
@@ -423,4 +535,18 @@ class SkillDelete(generics.DestroyAPIView):
 class CompanyDelete(DeleteView):
     model = Company
     success_url = '/company/'
+    
+@csrf_exempt
+@api_view(['GET'])
+def get_jobs_by_category(request):
+    category_id = request.GET.get('category_id')
+    print('category_id' , category_id)
+    try:
+        jobs = Job.objects.filter(job_category_id = category_id)
+        job_serializer = JobSerializer(jobs, many=True)
+        return JsonResponse(job_serializer.data, safe=False)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+    
+    
     
