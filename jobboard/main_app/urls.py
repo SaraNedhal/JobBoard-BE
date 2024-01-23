@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     # path('', views.home, name='home'),
@@ -49,17 +50,17 @@ urlpatterns = [
     path('profile/assoc_profile/', views.assoc_profile, name='assoc_profile'),
     path('profile/unassoc_profile/', views.unassoc_profile, name='unassoc_profile'),
 
+    # Admin Request Urls 
+    # path('request/', views.Admin_Requests.as_view(), name='request_index'),
   
     # path('accounts/signup/', views.signup, name='signup'),
     path('signup/', views.RegistrationView.as_view(), name='signup'),
-    path('login/', views.LoginView.as_view(), name='login'),
+    path('login/', csrf_exempt(views.LoginView.as_view()), name='login'),
     
     path('user/<int:user_id>/info/', views.get_user_info, name="user_info"),
     path('user/role/' , views.get_user_role , name="get_user_role" ),
 
     path('logout/', views.LogoutView.as_view(), name='logout'),
-
-
 ]
 
 if settings.DEBUG:

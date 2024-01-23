@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
 from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer, SkillSerializer, ProfileSerializer, ApplicationSerializer, UserSerializer
-
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from rest_framework.decorators import api_view
@@ -11,6 +10,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAuthenticated, AllowAny, AllowAny
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
 from rest_framework import permissions
@@ -39,9 +39,19 @@ class JobCategoryList(generics.ListAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
 
-    # def get(self, request, *args, **kwargs):
-    #     job_categories = Job_categorySerializer(self.get_queryset(), many=True).data
-    #     return Response(job_categories)
+
+class JobCategoryDetail(generics.RetrieveAPIView):
+    queryset = Job_category.objects.all()
+    serializer_class = Job_categorySerializer
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        response_data = {
+            "message": "job category details retrieved successfully",
+            "job_category": serializer.data
+        }
+        return JsonResponse(response_data)
+
  
 
 class JobCategoryDetail(generics.RetrieveAPIView):
@@ -76,30 +86,16 @@ class JobCategoryCreate(generics.CreateAPIView):
 
 
 
-class JobCategoryUpdate(UpdateView):
-    # model = Job_category
-    # fields = ['category_name']
-
+class JobCategoryUpdate(generics.UpdateAPIView):
+    queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
-    permission_class = [IsAuthenticated]
     
-    # fields = ['category_name']
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        job_category = self.serializer_class(instance)
-        return Response(job_category)
 
 
 
-class JobCategoryDelete(DeleteView):
-    model = Job_category
-    permission_class = [AllowAny]
-
-    # success_url = '/job_categories'
-    def delete(self, request, *args, **kwargs):
-        # self.check_object_permissions(self.request, self.get_object())
-        response = super().delete(request, *args, **kwargs)
-        return Response({'message': 'Job deleted successfully'})
+class JobCategoryDelete(generics.DestroyAPIView):
+    queryset = Job_category.objects.all()
+    serializer_class = Job_categorySerializer
 
 
 # Job Views:
@@ -108,9 +104,7 @@ class JobList(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
 
-    # def get(self, request, *args, **kwargs):
-    #     job_list = JobSerializer(self.get_queryset(), many=True).data
-    #     return Response(job_list)
+
 
 
 class JobDetail(generics.RetrieveAPIView):
@@ -183,35 +177,7 @@ def job_create(request):
         return JsonResponse(serilaized_job_data.data)
     except Exception as e:
         return JsonResponse({'message': str(e)})
-   
-    
-    
-    
-# class JobCreate(generics.CreateAPIView):
-#     # model = Job_category
-#     serializer_class = JobSerializer
-#     permission_class = [IsAuthenticated]
-    
-#     # fields = ['category_name']
-#     def form_valid(self, form):
-#         instance = form.save(commit=False)
-#         job = self.serializer_class(instance)
-#         return Response(job)
-    
-# class JobCreate(LoginRequiredMixin, CreateView):
-#     serializer_class = JobSerializer
-    
-#     # fields = ['job_title', 'job_description', 'job_salary']
-
-#     def form_valid(self, form):
-#         instance = form.save(commit=False)
-#         job = self.serializer_class(instance)
-#         return Response(job)
-
-
-# class JobUpdate(UpdateView):
-#     model = Job
-#     fields = ['job_title', 'job_description', 'job_salary']
+       
 
 @csrf_exempt
 @permission_classes([permissions.IsAuthenticated])
