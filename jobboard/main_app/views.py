@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
 from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer, SkillSerializer, ProfileSerializer, ApplicationSerializer, UserSerializer
-
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
@@ -12,6 +11,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from rest_framework.permissions import IsAuthenticated, AllowAny, AllowAny
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
 from rest_framework import permissions
@@ -25,8 +25,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.decorators import parser_classes
 from rest_framework.parsers import JSONParser
 from rest_framework.parsers import MultiPartParser, FormParser
-
+from django.contrib.auth.decorators import permission_required
+from .decorator import allowed_users
 # Create your views here.
+from django.utils.decorators import method_decorator
 
 @api_view(['GET'])
 def hello_world(request):
@@ -38,10 +40,6 @@ class JobCategoryList(generics.ListAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
 
-    # def get(self, request, *args, **kwargs):
-    #     job_categories = Job_categorySerializer(self.get_queryset(), many=True).data
-    #     return Response(job_categories)
- 
 
 class JobCategoryDetail(DetailView):
     model = Job_category
@@ -51,7 +49,8 @@ class JobCategoryDetail(DetailView):
         return Response(job_category)
 
 
-
+# @allowed_users(['A'])
+@method_decorator(allowed_users([]), name='dispatch')
 class JobCategoryCreate(generics.CreateAPIView):
     # model = Job_category
     serializer_class = Job_categorySerializer
@@ -65,30 +64,16 @@ class JobCategoryCreate(generics.CreateAPIView):
 
 
 
-class JobCategoryUpdate(UpdateView):
-    # model = Job_category
-    # fields = ['category_name']
-
+class JobCategoryUpdate(generics.UpdateAPIView):
+    queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
-    permission_class = [IsAuthenticated]
     
-    # fields = ['category_name']
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        job_category = self.serializer_class(instance)
-        return Response(job_category)
 
 
 
-class JobCategoryDelete(DeleteView):
-    model = Job_category
-    permission_class = [AllowAny]
-
-    # success_url = '/job_categories'
-    def delete(self, request, *args, **kwargs):
-        # self.check_object_permissions(self.request, self.get_object())
-        response = super().delete(request, *args, **kwargs)
-        return Response({'message': 'Job deleted successfully'})
+class JobCategoryDelete(generics.DestroyAPIView):
+    queryset = Job_category.objects.all()
+    serializer_class = Job_categorySerializer
 
 
 # Job Views:
@@ -97,11 +82,6 @@ class JobList(generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
 
-    # def get(self, request, *args, **kwargs):
-    #     job_list = JobSerializer(self.get_queryset(), many=True).data
-    #     return Response(job_list)
-
-
 class JobDetail(DetailView):
     model = Job
 
@@ -109,56 +89,27 @@ class JobDetail(DetailView):
         job= JobSerializer(self.get_queryset()).data
         return Response(job)
 
-# class JobCreate(generics.CreateAPIView):
-#     queryset = Job.objects.all()
-#     serializer_class = JobSerializer
 
-#     def perform_create(self, serializer):
-#         # Exclude 'user' from validated_data during creation
-#         user = self.request.user if self.request.user.is_authenticated else None
-#         serializer.save(user=user)
-
-
-@parser_classes([JSONParser])
-class JobCreate(generics.CreateAPIView):
+class JobCreate(generics.UpdateAPIView):
     serializer_class = JobSerializer
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
+    queryset = Job.objects.all()
 
-    def create(self, request, *args, **kwargs):
-        user = self.request.user if self.request.user.is_authenticated else None
 
-        # Convert skills to list if provided as a comma-separated string
-        if 'skills' in request.data and isinstance(request.data['skills'], str):
-            request.data['skills'] = [skill.strip() for skill in request.data['skills'].split(',')]
+    # def create(self, request, *args, **kwargs):
+    #     user = self.request.user if self.request.user.is_authenticated else None
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save(user=user)
+    #     # Convert skills to list if provided as a comma-separated string
+    #     if 'skills' in request.data and isinstance(request.data['skills'], str):
+    #         request.data['skills'] = [skill.strip() for skill in request.data['skills'].split(',')]
 
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    #     serializer = self.get_serializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save(user=user)
+
+    #     headers = self.get_success_headers(serializer.data)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
-# class JobCreate(generics.CreateAPIView):
-#     # model = Job_category
-#     serializer_class = JobSerializer
-#     permission_class = [IsAuthenticated]
-    
-#     # fields = ['category_name']
-#     def form_valid(self, form):
-#         instance = form.save(commit=False)
-#         job = self.serializer_class(instance)
-#         return Response(job)
-    
-# class JobCreate(LoginRequiredMixin, CreateView):
-#     serializer_class = JobSerializer
-    
-#     # fields = ['job_title', 'job_description', 'job_salary']
-
-#     def form_valid(self, form):
-#         instance = form.save(commit=False)
-#         job = self.serializer_class(instance)
-#         return Response(job)
-
 
 class JobUpdate(UpdateView):
     model = Job
@@ -176,6 +127,7 @@ class JobDelete(DeleteView):
 #   applications = Application.objects.all()  
 #   return Response({'applications' : applications})
 
+@allowed_users(['J'])
 @csrf_exempt
 @api_view(['GET'])
 def application_list(request):
@@ -446,13 +398,63 @@ class CompanyDetail(generics.RetrieveAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
 
-class CompanyCreate(generics.CreateAPIView):
-    serializer_class = CompanySerializer
-    # permission_class = [IsAuthenticated]
-    queryset = Company.objects.all()
-    parser_classes = (MultiPartParser, FormParser)
+# class CompanyCreate(generics.CreateAPIView):
+#     serializer_class = CompanySerializer
+#     # permission_class = [IsAuthenticated]
+#     queryset = Company.objects.all()
+#     parser_classes = (MultiPartParser, FormParser)
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def company_create(request):
+    try:
+        user_id = request.user.id
+        company_name = request.data['company_name']
+        location = request.data['location']
+        logo = request.FILES['logo']
+        email = request.data['email']
+        
+        company = Company.objects.create(
+            user_id=user_id,
+            company_name=company_name,
+            location=location,
+            logo=logo,
+            email=email
+        )    
+        serialized_company_data = CompanySerializer(company)
+        return JsonResponse(serialized_company_data.data)
+    except  Exception as e:
+        return JsonResponse({'message': str(e)})
     
-    
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@api_view(['POST'])
+def company_update(request):
+        company_id = request.GET.get('company_id')
+        company_info = Company.objects.get(id = company_id)
+        
+        company_info.company_name = request.data.get('company_name')
+        company_info.location = request.data.get('location')
+        company_info.logo = request.FILES.get('logo')
+        company_info.email = request.data.get('email')
+        
+        serialized_data = CompanySerializer(instance=company_info , data=request.data, context={'instance':company_info})
+        
+        if serialized_data.is_valid():
+            serialized_data.save()
+        
+            updated_serialized_company = CompanySerializer(company_info).data
+            
+            return JsonResponse({
+                "message": "Company updated successfully",
+                "company": updated_serialized_company
+            })
+        else:
+            return JsonResponse({"error": updated_serialized_company.errors})
+   
+        
+        
+     
     # fields = ['company_name', 'location', 'logo', 'email']
 
     # def form_valid(self, form):
@@ -610,5 +612,31 @@ def get_jobs_by_category(request):
     except Exception as e:
         return JsonResponse({'message': str(e)})
     
-    
-    
+@csrf_exempt
+@api_view(['GET'])
+def get_user_role(request):
+    user_id = request.user.id
+    print("user_id", user_id)
+    try:
+        user_role = Profile.objects.filter(user_id = user_id).values_list('role')[0]
+        # user_role = Profile.objects.filter
+        # user_role = Profile.objects.values_list('role', flat=True)[0]
+        print('user_role ' , user_role)
+        # profile_serializer = ProfileSerializer(user_role)
+        return JsonResponse(user_role[0], safe=False)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+
+@csrf_exempt
+@api_view(['GET'])
+def get_jobs_by_company(request):
+    company_id = request.GET.get('id')
+    try:
+        company_jobs = Job.objects.filter(company_id = company_id)
+        company_job_serializer = JobSerializer(company_jobs , many=True)
+        job_company_response = {
+            'jobs': company_job_serializer.data
+        }
+        return JsonResponse(job_company_response)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})

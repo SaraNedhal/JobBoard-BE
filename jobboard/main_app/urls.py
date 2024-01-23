@@ -29,10 +29,11 @@ urlpatterns = [
      # Paths for all the CRUD Operations for Company Model - CBVs
     path('company/', views.CompanyList.as_view(), name='company_index'),
     path('company/<int:pk>/', views.CompanyDetail.as_view(), name="company_detail"),
-    path('company/create/', views.CompanyCreate.as_view(), name='company_create'),
-    path('company/<int:pk>/update/', views.CompanyUpdate.as_view(), name='company_update'),
+    path('company/create/', views.company_create, name='company_create'),
+    path('company/update/', views.company_update, name='company_update'),
     path('company/<int:pk>/delete/', views.CompanyDelete.as_view(), name='company_delete'),
-
+    path('company/browse/jobs/' , views.get_jobs_by_company , name="get_jobs_by_company"),
+    
     path('application/' , views.application_list , name="application_list"),
     path('application/<int:user_id>/create/<int:job_id>/' , views.application_create, name="applications_create" ),
     path('application/update/' , views.application_update , name="application_update"),
@@ -57,6 +58,7 @@ urlpatterns = [
     path('login/', csrf_exempt(views.LoginView.as_view()), name='login'),
     
     path('user/<int:user_id>/info/', views.get_user_info, name="user_info"),
+    path('user/role/' , views.get_user_role , name="get_user_role" ),
 
     path('logout/', views.LogoutView.as_view(), name='logout'),
 ]
