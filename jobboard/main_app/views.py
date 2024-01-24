@@ -73,7 +73,7 @@ class JobCategoryDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     #     return Response(job_category)
 
 
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class JobCategoryCreate(LoginRequiredMixin,generics.CreateAPIView):
     # model = Job_category
     serializer_class = Job_categorySerializer
@@ -87,7 +87,7 @@ class JobCategoryCreate(LoginRequiredMixin,generics.CreateAPIView):
 
 
 
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class JobCategoryUpdate(LoginRequiredMixin,generics.UpdateAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
@@ -95,7 +95,7 @@ class JobCategoryUpdate(LoginRequiredMixin,generics.UpdateAPIView):
 
 
 
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class JobCategoryDelete(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
@@ -128,7 +128,7 @@ class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 # @parser_classes([JSONParser])
 
 @csrf_exempt
-@allowed_users(['A,CA'])
+# @allowed_users(['A,CA'])q
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def job_create(request):
@@ -160,7 +160,7 @@ def job_create(request):
 
        
 @csrf_exempt
-@allowed_users(['A,CA'])
+# @allowed_users(['A,CA'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def job_update(request):
@@ -178,6 +178,8 @@ def job_update(request):
         job_info.skills.set(skills)  
     job_info.job_category_id = job_category
     serialized_data = JobSerializer(instance=job_info, data=request.data , partial=True , context={'instance':job_info})
+
+    updated_serialized_job = ""
     # if the serlized version of the updated job has valid inputs
     if serialized_data.is_valid():
         # store it in the database
@@ -193,14 +195,14 @@ def job_update(request):
         return JsonResponse({"error": updated_serialized_job.errors})
    
         
-@method_decorator(allowed_users(['A','CA']), name='dispatch')
+# @method_decorator(allowed_users(['A','CA']), name='dispatch')
 class JobDelete(LoginRequiredMixin,generics.DestroyAPIView):
     serializer_class = JobSerializer
     queryset = Job.objects.all()
 
 
 @csrf_exempt
-@allowed_users(['A','J'])
+# @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['GET'])
 def application_list(request):
@@ -228,7 +230,7 @@ def get_user_info(request,user_id):
     return JsonResponse(response_data)
 
 @csrf_exempt
-@allowed_users(['A','J'])
+# @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def application_create(request , user_id , job_id):
@@ -261,7 +263,7 @@ def application_create(request , user_id , job_id):
             return JsonResponse({"error": application_serializer.errors})
  
 @csrf_exempt
-@allowed_users(['A','J']) 
+# @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def application_update(request):
@@ -300,7 +302,7 @@ def application_update(request):
 
 
 @csrf_exempt
-@allowed_users(['A','J'])
+# @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['GET'])  
 def application_delete(request):
@@ -317,7 +319,7 @@ def application_delete(request):
     return JsonResponse(response_data)
 
 @csrf_exempt
-@allowed_users(['A','CA'])
+# @allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST'])  
 def assoc_job(request):
@@ -350,7 +352,7 @@ def assoc_job(request):
  
  
 @csrf_exempt
-@allowed_users(['A','CA'])   
+# @allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST'])  
 def unassoc_job(request):
@@ -382,7 +384,7 @@ def unassoc_job(request):
 
 
 @csrf_exempt
-@allowed_users(['A','CA'])
+# @allowed_users(['A','CA'])
 @api_view(['POST'])    
 @permission_classes([permissions.IsAuthenticated])  
 def assoc_profile(request):
@@ -409,7 +411,7 @@ def assoc_profile(request):
 
 
 @csrf_exempt
-@allowed_users(['A','CA'])
+# @allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST']) 
 def unassoc_profile(request):
@@ -464,7 +466,7 @@ class CompanyDetail(LoginRequiredMixin,generics.RetrieveAPIView):
         return JsonResponse(response_data)
 
 @csrf_exempt
-@allowed_users(['A','CA'])
+# @allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def company_create(request):
@@ -488,39 +490,49 @@ def company_create(request):
         return JsonResponse({'message': str(e)})
  
 @csrf_exempt
-@allowed_users(['A','CA'])   
+# @allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def company_update(request):
-        company_id = request.GET.get('company_id')
-        company_info = Company.objects.get(id = company_id)
-        if 'company_name' in request.data:
-            company_info.company_name = request.data.get('company_name')
-        if 'location' in request.data:
-            company_info.location = request.data.get('location')
-        if 'logo' in request.FILES:
-            company_info.logo = request.FILES.get('logo')
-        if 'email' in request.data:
-            company_info.email = request.data.get('email')
-        
-        serialized_data = CompanySerializer(instance=company_info , data=request.data, 
-                                            partial=True, context={'instance':company_info})
-        
-        if serialized_data.is_valid():
-            serialized_data.save()
-        
-            updated_serialized_company = CompanySerializer(company_info).data
+        try:
+            company_id = request.GET.get('company_id')
+            company_info = Company.objects.get(id = company_id)
+            if 'company_name' in request.data:
+                company_info.company_name = request.data.get('company_name')
+            if 'location' in request.data:
+                company_info.location = request.data.get('location')
+            if 'logo' in request.FILES:
+                company_info.logo = request.FILES.get('logo')
+            if 'email' in request.data:
+                company_info.email = request.data.get('email')
             
-            return JsonResponse({
-                "message": "Company updated successfully",
-                "company": updated_serialized_company
-            })
-        else:
-            return JsonResponse({"error": updated_serialized_company.errors})
-       
-     
+            serialized_data = CompanySerializer(instance=company_info , data=request.data, 
+                                                partial=True, context={'instance':company_info})
+            
+            updated_serialized_company = None
+            if serialized_data.is_valid():
+                serialized_data.save()
+            
+                updated_serialized_company = CompanySerializer(company_info).data
+                
+                return JsonResponse({
+                    "message": "Company updated successfully",
+                    "company": updated_serialized_company
+                })
+            else:
+                return JsonResponse({
+                    "message": "Validation error",
+                    "errors": serialized_data.errors
+                }, status=400)
 
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+        except Company.DoesNotExist:
+            return JsonResponse({'message': 'Company not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+        
+        
+
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class CompanyDelete(LoginRequiredMixin,generics.DestroyAPIView):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
@@ -705,7 +717,7 @@ class SkillList(LoginRequiredMixin,generics.ListAPIView):
     serializer_class = SkillSerializer
 
  
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class SkillDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
@@ -718,21 +730,21 @@ class SkillDetail(LoginRequiredMixin,generics.RetrieveAPIView):
         }
         return JsonResponse(response_data)
     
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class SkillCreate(LoginRequiredMixin,generics.CreateAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     # model = Skill
     # fields = ['skill_name']
     
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class SkillUpdate(LoginRequiredMixin,generics.UpdateAPIView):
     # model = Skill
     # fields = ['skill_name']
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
 
-@method_decorator(allowed_users(['A,CA']), name='dispatch')
+# @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class SkillDelete(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer

@@ -141,15 +141,13 @@ CORS_ORIGIN_WHITELIST = [
      'http://localhost:3000'
 ]
 
+from datetime import timedelta
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-    ]
-}
-
-from datetime import timedelta
-
-SIMPLE_JWT = {
+    ],
     'ACCESS_TOKEN_LIFETIME': timedelta(days=3),
     'ROTATE_REFRESH_TOKENS': False,
 }
+
