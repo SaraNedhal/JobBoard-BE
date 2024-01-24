@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Permission
 from rest_framework.permissions import IsAuthenticated, AllowAny, AllowAny
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -138,9 +139,12 @@ class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 @csrf_exempt
 # # @allowed_users(['A,CA'])q
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Job.can_add'])
+#@permission_required('main_app.add_job')
 @api_view(['POST'])
 def job_create(request):
+    permissions = request.user.has_perm('main_app.add_job')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     try:
         user_id = request.user.id
         print('user_id ' , user_id)
