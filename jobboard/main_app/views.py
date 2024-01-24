@@ -817,3 +817,20 @@ def get_jobs_by_company(request):
         return JsonResponse(job_company_response)
     except Exception as e:
         return JsonResponse({'message': str(e)})
+
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@permission_required(['Application.can_view'])
+@api_view(['GET'])
+def get_application_for_company_admin(request):
+    job_id = request.GET.get('job_id')
+    try:
+        all_applications_for_job = Application.objects.filter(job_id = job_id)
+        all_applications_for_job_serializer = ApplicationSerializer(all_applications_for_job , many=True)
+        application_job_response = {
+                'jobs': all_applications_for_job_serializer.data
+            }
+        return JsonResponse(application_job_response)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+    
