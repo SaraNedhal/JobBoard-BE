@@ -176,6 +176,7 @@ def job_create(request):
 def job_update(request):
     job_id = request.GET.get('job_id')
     job_category = request.GET.get('category_id')
+    company_id = request.GET.get('company_id')    
     job_info = Job.objects.get(id=job_id)
     if 'job_title' in request.data:
         job_info.job_title = request.data.get('job_title')
@@ -187,6 +188,7 @@ def job_update(request):
         skills = request.data.get('skills')   
         job_info.skills.set(skills)  
     job_info.job_category_id = job_category
+    job_info.company_id = company_id
     serialized_data = JobSerializer(instance=job_info, data=request.data , partial=True , context={'instance':job_info})
 
     updated_serialized_job = ""
@@ -457,7 +459,7 @@ def unassoc_profile(request):
 class CompanyList(LoginRequiredMixin , generics.ListAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    permission_classes=[IsAuthenticated]
+    # permission_classes=[IsAuthenticated]
 
     # permission_classes = [UserTypePermission]
     # allowed_user_types = ['J']  # Specify the allowed user types for this view

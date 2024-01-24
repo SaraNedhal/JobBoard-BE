@@ -28,7 +28,7 @@ class JobSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super(JobSerializer, self).__init__(*args, **kwargs)
         if 'instance' in self.context:
-          for field_name in ['user', 'company_id']:
+          for field_name in ['user']:
             self.fields[field_name].required = False
       
      
