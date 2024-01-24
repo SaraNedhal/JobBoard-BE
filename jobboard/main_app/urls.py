@@ -46,6 +46,12 @@ urlpatterns = [
     path('skill/<int:pk>/delete/', views.SkillDelete.as_view(), name='skill_delete'),
 
     path('profile/', views.ProfileList.as_view(), name='profile_index'),
+
+  
+   
+    path('profile_update/<int:pk>/', views.ProfileUpdate.as_view(), name='profile_update'),
+    path('profile_list/', views.ProfileList.as_view(), name='profile_list'),
+
     # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),
     path('profile/assoc_profile/', views.assoc_profile, name='assoc_profile'),
     path('profile/unassoc_profile/', views.unassoc_profile, name='unassoc_profile'),
@@ -56,6 +62,7 @@ urlpatterns = [
     # path('accounts/signup/', views.signup, name='signup'),
     path('signup/', views.RegistrationView.as_view(), name='signup'),
     path('login/', csrf_exempt(views.LoginView.as_view()), name='login'),
+
     
     path('user/<int:user_id>/info/', views.get_user_info, name="user_info"),
     path('user/role/' , views.get_user_role , name="get_user_role" ),
