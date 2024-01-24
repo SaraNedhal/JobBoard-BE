@@ -34,7 +34,7 @@ class Skill(models.Model):
 
 class Profile(models.Model):
   email = models.EmailField(max_length = 254)
-  role =  models.CharField(max_length=1, choices=ROLES,default=ROLES[1][0])
+  role =  models.CharField(max_length=2, choices=ROLES,default=ROLES[1][0])
   phone_number = models.CharField(max_length=20)
   image = models.ImageField(upload_to='main_app/static/uploads', default="")
   user = models.OneToOneField(User, on_delete=models.CASCADE)
