@@ -11,7 +11,7 @@ urlpatterns = [
 
     # Paths for all the CRUD Operations for job_category - CBVs
     path('job_categories/', views.JobCategoryList.as_view(), name='job_category_list'),
-    path('job_categories/<int:pk>', views.JobCategoryDetail.as_view(), name="job_category_detail"),
+    path('job_categories/<int:pk>/', views.JobCategoryDetail.as_view(), name="job_category_detail"),
     path('job_categories/create/', views.JobCategoryCreate.as_view(), name='job_category_create'),
     path('job_categories/<int:pk>/update/', views.JobCategoryUpdate.as_view(), name='job_category_update'),
     path('job_categories/<int:pk>/delete/', views.JobCategoryDelete.as_view(), name='job_category_delete'),
@@ -19,9 +19,9 @@ urlpatterns = [
 
     # Paths for all the CRUD Operations for jobs - CBVs
     path('jobs/', views.JobList.as_view(), name='jobs_index'),
-    path('jobs/<int:pk>', views.JobDetail.as_view(), name="jobs_detail"),
+    path('jobs/<int:pk>/', views.JobDetail.as_view(), name="jobs_detail"),
     path('jobs/create/', views.job_create, name='jobs_create'),
-    path('jobs/<int:pk>/update/', views.JobUpdate.as_view(), name='jobs_update'),
+    path('jobs/update/', views.job_update, name='jobs_update'),
     path('jobs/<int:pk>/delete/', views.JobDelete.as_view(), name='jobs_delete'),
     path('jobs/assoc_job/', views.assoc_job, name='assoc_job'),
     path('jobs/unassoc_job/', views.unassoc_job, name='unassoc_job'),
@@ -40,10 +40,10 @@ urlpatterns = [
     path('application/delete/' , views.application_delete , name="application_delete"),
 
     path('skill/', views.SkillList.as_view(), name='skill_list'),
-    path('skill/<int:pk>', views.SkillDetail.as_view(), name='skill_detail'),
+    path('skill/<int:pk>/', views.SkillDetail.as_view(), name='skill_detail'),
     path('skill/create/', views.SkillCreate.as_view(), name='skill_create'),
-    path('skill/<int:pk>/update', views.SkillUpdate.as_view(), name='skill_update'),
-    path('skill/<int:pk>/delete', views.SkillDelete.as_view(), name='skill_delete'),
+    path('skill/<int:pk>/update/', views.SkillUpdate.as_view(), name='skill_update'),
+    path('skill/<int:pk>/delete/', views.SkillDelete.as_view(), name='skill_delete'),
 
     path('profile/', views.ProfileList.as_view(), name='profile_index'),
     # path('profile/create', views.ProfileCreate.as_view(), name='profile_create'),

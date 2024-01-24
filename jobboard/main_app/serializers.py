@@ -19,22 +19,26 @@ class SkillSerializer(serializers.ModelSerializer):
     fields = '__all__'
   
 class JobSerializer(serializers.ModelSerializer):
-    applications = ApplicationSerializer(many=True)
+    # applications = ApplicationSerializer(many=True)
     skills = SkillSerializer(many=True, read_only=True)
     
     class Meta:
       model = Job
       fields = '__all__'
-      extra_kwargs = {
-        'user': {'required': False}
-      }
+    def __init__(self, *args, **kwargs):
+        super(JobSerializer, self).__init__(*args, **kwargs)
+        if 'instance' in self.context:
+          for field_name in ['user', 'company_id']:
+            self.fields[field_name].required = False
+      
+     
     
 
-    def to_representation(self, instance):
-        # Customize the representation for 'skills' to be an array
-        representation = super(JobSerializer, self).to_representation(instance)
-        representation['skills'] = SkillSerializer(instance.skills.all(), many=True).data
-        return representation
+    # def to_representation(self, instance):
+    #     # Customize the representation for 'skills' to be an array
+    #     representation = super(JobSerializer, self).to_representation(instance)
+    #     representation['skills'] = SkillSerializer(instance.skills.all(), many=True).data
+    #     return representation
 
 
 
@@ -73,4 +77,5 @@ class Job_categorySerializer(serializers.ModelSerializer):
   class Meta:
       model = Job_category
       fields = '__all__'
+
 
