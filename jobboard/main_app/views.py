@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.http import JsonResponse
 
+from .permissions import UserTypePermission
+
 from .serializers import Job_categorySerializer, JobSerializer, CompanySerializer, SkillSerializer, ProfileSerializer, ApplicationSerializer, UserSerializer, UpdateProfileSerializer
 
 from .models import Skill, Profile, Company, Job_category, Job, Application, User
@@ -18,7 +20,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import generics
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin , PermissionRequiredMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from django.core.exceptions import ObjectDoesNotExist 
@@ -74,10 +76,11 @@ class JobCategoryDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class JobCategoryCreate(LoginRequiredMixin,generics.CreateAPIView):
+class JobCategoryCreate(LoginRequiredMixin,PermissionRequiredMixin,generics.CreateAPIView):
     # model = Job_category
     serializer_class = Job_categorySerializer
     permission_class = [IsAuthenticated]
+    permission_required = 'Job_category.can_add'
     
     # fields = ['category_name']
     def form_valid(self, form):
@@ -88,17 +91,19 @@ class JobCategoryCreate(LoginRequiredMixin,generics.CreateAPIView):
 
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class JobCategoryUpdate(LoginRequiredMixin,generics.UpdateAPIView):
+class JobCategoryUpdate(LoginRequiredMixin,PermissionRequiredMixin,generics.UpdateAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
-    
+    permission_required = 'Job_category.can_change'
+
 
 
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class JobCategoryDelete(LoginRequiredMixin,generics.DestroyAPIView):
+class JobCategoryDelete(LoginRequiredMixin,PermissionRequiredMixin,generics.DestroyAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
+    permission_required = 'Job_category.can_delete'
 
 
 # Job Views:
@@ -106,6 +111,8 @@ class JobCategoryDelete(LoginRequiredMixin,generics.DestroyAPIView):
 class JobList(LoginRequiredMixin,generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
+    # permission_required = 'Job.can_view'
+
 
 
 
@@ -113,6 +120,7 @@ class JobList(LoginRequiredMixin,generics.ListAPIView):
 class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
+    # permission_required = 'Job.can_view'
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -128,8 +136,9 @@ class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 # @parser_classes([JSONParser])
 
 @csrf_exempt
-# @allowed_users(['A,CA'])q
+# # @allowed_users(['A,CA'])q
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Job.can_add'])
 @api_view(['POST'])
 def job_create(request):
     try:
@@ -160,8 +169,9 @@ def job_create(request):
 
        
 @csrf_exempt
-# @allowed_users(['A,CA'])
+# # @allowed_users(['A,CA'])
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Job.can_change'])
 @api_view(['POST'])
 def job_update(request):
     job_id = request.GET.get('job_id')
@@ -181,6 +191,7 @@ def job_update(request):
 
     updated_serialized_job = ""
     # if the serlized version of the updated job has valid inputs
+    updated_serialized_job = None
     if serialized_data.is_valid():
         # store it in the database
         serialized_data.save()
@@ -196,14 +207,15 @@ def job_update(request):
    
         
 # @method_decorator(allowed_users(['A','CA']), name='dispatch')
-class JobDelete(LoginRequiredMixin,generics.DestroyAPIView):
+class JobDelete(LoginRequiredMixin,PermissionRequiredMixin,generics.DestroyAPIView):
     serializer_class = JobSerializer
     queryset = Job.objects.all()
-
+    permission_required = 'Job.can_delete'
 
 @csrf_exempt
-# @allowed_users(['A','J'])
+# #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Application.can_view'])
 @api_view(['GET'])
 def application_list(request):
     applications = Application.objects.filter(user_id=request.user.id)
@@ -230,8 +242,9 @@ def get_user_info(request,user_id):
     return JsonResponse(response_data)
 
 @csrf_exempt
-# @allowed_users(['A','J'])
+# #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Application.can_add'])
 @api_view(['POST'])
 def application_create(request , user_id , job_id):
     user_id = request.user.id
@@ -263,13 +276,14 @@ def application_create(request , user_id , job_id):
             return JsonResponse({"error": application_serializer.errors})
  
 @csrf_exempt
-# @allowed_users(['A','J'])
+# #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Application.can_change'])
 @api_view(['POST'])
 def application_update(request):
     application_id = request.GET.get('application_id')
     application_info = Application.objects.get(id=application_id)
-    # making sure that the user who created the application is the one who's updating the application
+    # making sure that the user who created the application is t he one who's updating the application
     if  request.user.id != application_info.user_id:
         JsonResponse({"error" : "You are not authorized to update this application"})
     if 'resume' in request.FILES:
@@ -302,8 +316,9 @@ def application_update(request):
 
 
 @csrf_exempt
-# @allowed_users(['A','J'])
+# #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Application.can_delete'])
 @api_view(['GET'])  
 def application_delete(request):
     application_id = request.GET.get('application_id')
@@ -319,8 +334,9 @@ def application_delete(request):
     return JsonResponse(response_data)
 
 @csrf_exempt
-# @allowed_users(['A','CA'])
-@permission_classes([permissions.IsAuthenticated])  
+# # @allowed_users(['A','CA'])
+@permission_classes([permissions.IsAuthenticated]) 
+@permission_required 
 @api_view(['POST'])  
 def assoc_job(request):
     job_id = request.GET.get('job_id')
@@ -352,7 +368,7 @@ def assoc_job(request):
  
  
 @csrf_exempt
-# @allowed_users(['A','CA'])   
+# # @allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST'])  
 def unassoc_job(request):
@@ -384,7 +400,7 @@ def unassoc_job(request):
 
 
 @csrf_exempt
-# @allowed_users(['A','CA'])
+# # @allowed_users(['A','CA'])
 @api_view(['POST'])    
 @permission_classes([permissions.IsAuthenticated])  
 def assoc_profile(request):
@@ -411,7 +427,7 @@ def assoc_profile(request):
 
 
 @csrf_exempt
-# @allowed_users(['A','CA'])
+# # @allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST']) 
 def unassoc_profile(request):
@@ -438,9 +454,15 @@ def unassoc_profile(request):
         
 
 
-class CompanyList(LoginRequiredMixin,generics.ListAPIView):
+class CompanyList(LoginRequiredMixin , generics.ListAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    permission_classes=[IsAuthenticated]
+
+    # permission_classes = [UserTypePermission]
+    # allowed_user_types = ['J']  # Specify the allowed user types for this view
+
+    # permission_required = 'Company.can_view'
 
     # def get(self, request, *args, **kwargs):
     #     company_list = CompanySerializer(self.get_queryset(), many=True).data
@@ -456,6 +478,8 @@ class CompanyList(LoginRequiredMixin,generics.ListAPIView):
 class CompanyDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
+    # permission_required = 'Company.can_view'
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -466,8 +490,9 @@ class CompanyDetail(LoginRequiredMixin,generics.RetrieveAPIView):
         return JsonResponse(response_data)
 
 @csrf_exempt
-# @allowed_users(['A','CA'])
+# # @allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Company.can_add'])
 @api_view(['POST'])
 def company_create(request):
     try:
@@ -490,8 +515,9 @@ def company_create(request):
         return JsonResponse({'message': str(e)})
  
 @csrf_exempt
-# @allowed_users(['A','CA'])   
+# # @allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])
+@permission_required(['Company.can_change'])
 @api_view(['POST'])
 def company_update(request):
         try:
@@ -533,18 +559,19 @@ def company_update(request):
         
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class CompanyDelete(LoginRequiredMixin,generics.DestroyAPIView):
+class CompanyDelete( LoginRequiredMixin, PermissionRequiredMixin , generics.DestroyAPIView):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
-
+    permission_required = 'Company.can_delete'
 # class ProfileList(LoginRequiredMixin,generics.ListAPIView):
 #     queryset = Profile.objects.all()
 #     serializer_class = ProfileSerializer
 
 
-class ProfileCreate(LoginRequiredMixin,generics.CreateAPIView):
+class ProfileCreate(LoginRequiredMixin,PermissionRequiredMixin,generics.CreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_required = 'Profile.can_add'
 
 
     
@@ -625,15 +652,17 @@ class LogoutView(APIView):
 
         return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
     
-class ProfileList(generics.ListAPIView):
+class ProfileList(LoginRequiredMixin,PermissionRequiredMixin,generics.ListAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_required = 'Profile.can_view'
 
 
-
-class ProfileUpdate(generics.UpdateAPIView):
+class ProfileUpdate(LoginRequiredMixin,PermissionRequiredMixin,generics.UpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = UpdateProfileSerializer
+    permission_required = 'Profile.can_change'
+
 
 
 # class UserProfileView(APIView):
@@ -708,19 +737,23 @@ class ProfileUpdate(generics.UpdateAPIView):
 #         else:
 #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProfileDelete(generics.DestroyAPIView):
+class ProfileDelete(LoginRequiredMixin,PermissionRequiredMixin,generics.DestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_required = 'Profile.can_delete'
 
 class SkillList(LoginRequiredMixin,generics.ListAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    # permission_required = 'Skill.can_view'
 
  
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class SkillDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    # permission_required = 'Skill.can_view'
+
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
@@ -731,23 +764,26 @@ class SkillDetail(LoginRequiredMixin,generics.RetrieveAPIView):
         return JsonResponse(response_data)
     
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class SkillCreate(LoginRequiredMixin,generics.CreateAPIView):
+class SkillCreate(LoginRequiredMixin, PermissionRequiredMixin, generics.CreateAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    permission_required = 'Skill.can_add'
     # model = Skill
     # fields = ['skill_name']
     
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class SkillUpdate(LoginRequiredMixin,generics.UpdateAPIView):
+class SkillUpdate(LoginRequiredMixin,PermissionRequiredMixin, generics.UpdateAPIView):
     # model = Skill
     # fields = ['skill_name']
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    permission_required = 'Skill.can_change'
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class SkillDelete(LoginRequiredMixin,generics.DestroyAPIView):
+class SkillDelete(LoginRequiredMixin,PermissionRequiredMixin, generics.DestroyAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
+    permission_required= 'Skill.can_delete'
     
 
 @csrf_exempt
@@ -793,3 +829,20 @@ def get_jobs_by_company(request):
         return JsonResponse(job_company_response)
     except Exception as e:
         return JsonResponse({'message': str(e)})
+
+@csrf_exempt
+@permission_classes([permissions.IsAuthenticated])
+@permission_required(['Application.can_view'])
+@api_view(['GET'])
+def get_application_for_company_admin(request):
+    job_id = request.GET.get('job_id')
+    try:
+        all_applications_for_job = Application.objects.filter(job_id = job_id)
+        all_applications_for_job_serializer = ApplicationSerializer(all_applications_for_job , many=True)
+        application_job_response = {
+                'jobs': all_applications_for_job_serializer.data
+            }
+        return JsonResponse(application_job_response)
+    except Exception as e:
+        return JsonResponse({'message': str(e)})
+    
