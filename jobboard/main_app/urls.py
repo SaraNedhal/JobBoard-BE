@@ -38,6 +38,8 @@ urlpatterns = [
     path('application/<int:user_id>/create/<int:job_id>/' , views.application_create, name="applications_create" ),
     path('application/update/' , views.application_update , name="application_update"),
     path('application/delete/' , views.application_delete , name="application_delete"),
+    path('application/jobs/' , views.get_application_for_company_admin , name="get_application_for_company_admin"),
+
 
     path('skill/', views.SkillList.as_view(), name='skill_list'),
     path('skill/<int:pk>/', views.SkillDetail.as_view(), name='skill_detail'),
