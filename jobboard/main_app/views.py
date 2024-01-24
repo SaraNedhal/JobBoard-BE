@@ -127,8 +127,8 @@ class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 
 # @parser_classes([JSONParser])
 
-@allowed_users(['A,CA'])
 @csrf_exempt
+@allowed_users(['A,CA'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def job_create(request):
@@ -159,8 +159,8 @@ def job_create(request):
         return JsonResponse({'message': str(e)})
 
        
-@allowed_users(['A,CA'])
 @csrf_exempt
+@allowed_users(['A,CA'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def job_update(request):
@@ -199,8 +199,8 @@ class JobDelete(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Job.objects.all()
 
 
-@allowed_users(['A','J'])
 @csrf_exempt
+@allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['GET'])
 def application_list(request):
@@ -227,8 +227,8 @@ def get_user_info(request,user_id):
     }
     return JsonResponse(response_data)
 
-@allowed_users(['A','J'])
 @csrf_exempt
+@allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def application_create(request , user_id , job_id):
@@ -260,8 +260,8 @@ def application_create(request , user_id , job_id):
     else:
             return JsonResponse({"error": application_serializer.errors})
  
-@allowed_users(['A','J']) 
 @csrf_exempt
+@allowed_users(['A','J']) 
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def application_update(request):
@@ -299,8 +299,8 @@ def application_update(request):
         return JsonResponse({"error": application_serializer.errors})
 
 
-@allowed_users(['A','J'])
 @csrf_exempt
+@allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['GET'])  
 def application_delete(request):
@@ -316,8 +316,8 @@ def application_delete(request):
         response_data = {'success': False, 'message': 'Application not found'}
     return JsonResponse(response_data)
 
-@allowed_users(['A','CA'])
 @csrf_exempt
+@allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST'])  
 def assoc_job(request):
@@ -349,8 +349,8 @@ def assoc_job(request):
         return JsonResponse({'message': str(e)})
  
  
-@allowed_users(['A','CA'])   
 @csrf_exempt
+@allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST'])  
 def unassoc_job(request):
@@ -381,8 +381,8 @@ def unassoc_job(request):
         return JsonResponse({'message': str(e)})
 
 
-@allowed_users(['A','CA'])
 @csrf_exempt
+@allowed_users(['A','CA'])
 @api_view(['POST'])    
 @permission_classes([permissions.IsAuthenticated])  
 def assoc_profile(request):
@@ -408,8 +408,8 @@ def assoc_profile(request):
         return JsonResponse({'message': str(e)})
 
 
-@allowed_users(['A','CA'])
 @csrf_exempt
+@allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])  
 @api_view(['POST']) 
 def unassoc_profile(request):
@@ -463,8 +463,8 @@ class CompanyDetail(LoginRequiredMixin,generics.RetrieveAPIView):
         }
         return JsonResponse(response_data)
 
-@allowed_users(['A','CA'])
 @csrf_exempt
+@allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def company_create(request):
@@ -487,8 +487,8 @@ def company_create(request):
     except  Exception as e:
         return JsonResponse({'message': str(e)})
  
-@allowed_users(['A','CA'])   
 @csrf_exempt
+@allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])
 @api_view(['POST'])
 def company_update(request):
