@@ -77,42 +77,82 @@ class JobCategoryDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class JobCategoryCreate(LoginRequiredMixin,PermissionRequiredMixin,generics.CreateAPIView):
-    # model = Job_category
+class JobCategoryCreate(LoginRequiredMixin, generics.CreateAPIView):
     serializer_class = Job_categorySerializer
-    permission_class = [IsAuthenticated]
-    permission_required = 'Job_category.can_add'
-    
-    # fields = ['category_name']
-    def form_valid(self, form):
-        instance = form.save(commit=False)
-        job_category = self.serializer_class(instance)
-        return Response(job_category)
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        # Check if the user has the required permission for the view
+        if not request.user.has_perm('main_app.add_job_category'):
+            print(f"User {request.user} does not have permission")
+            return Response({'message': "Unauthorized"}, status=403)
+
+        print(f"User {request.user} has permission")
+
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        # Optionally, you can customize the creation process here
+        serializer.save()
 
 
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class JobCategoryUpdate(LoginRequiredMixin,PermissionRequiredMixin,generics.UpdateAPIView):
+class JobCategoryUpdate(LoginRequiredMixin,generics.UpdateAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
-    permission_required = 'Job_category.can_change'
+   # permission_required = 'Job_category.can_change'
+
+    def update(self, request, *args, **kwargs):
+        # permissions = request.user.get_all_permissions()
+        # print(permissions)
+        instance = self.get_object()
+
+        # Check if the user has the required permission for the view
+        if not request.user.has_perm('main_app.change_job_category'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        # # Check if the user has the required permission for the view
+        # if not request.user.has_perm('main_app.change_job_category'):
+        #     return JsonResponse({'message': "Unauthorized"})
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return JsonResponse( {'message': "Job category updated successfully"})
 
 
 
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class JobCategoryDelete(LoginRequiredMixin,PermissionRequiredMixin,generics.DestroyAPIView):
+class JobCategoryDelete(LoginRequiredMixin, generics.DestroyAPIView):
     queryset = Job_category.objects.all()
     serializer_class = Job_categorySerializer
-    permission_required = 'Job_category.can_delete'
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the user has permission for the view
+        if not request.user.has_perm('main_app.delete_job_category'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        self.perform_destroy(instance)
+
+        return JsonResponse({'message': 'Category has been deleted successfully'})
 
 # Job Views:
 
 class JobList(LoginRequiredMixin,generics.ListAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    # permission_required = 'Job.can_view'
+    ## permission_required = 'Job.can_view'
 
 
 
@@ -121,7 +161,7 @@ class JobList(LoginRequiredMixin,generics.ListAPIView):
 class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Job.objects.all()
     serializer_class = JobSerializer
-    # permission_required = 'Job.can_view'
+    ## permission_required = 'Job.can_view'
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -142,6 +182,8 @@ class JobDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 #@permission_required('main_app.add_job')
 @api_view(['POST'])
 def job_create(request):
+    permissions = request.user.get_all_permissions()
+    print(permissions)
     permissions = request.user.has_perm('main_app.add_job')
     if not permissions:
         return JsonResponse({'message': "Unauthorized"})
@@ -175,9 +217,12 @@ def job_create(request):
 @csrf_exempt
 # # @allowed_users(['A,CA'])
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Job.can_change'])
+# @permission_required(['Job.can_change'])
 @api_view(['POST'])
 def job_update(request):
+    permissions = request.user.has_perm('main_app.change_job')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     job_id = request.GET.get('job_id')
     job_category = request.GET.get('category_id')
     company_id = request.GET.get('company_id')    
@@ -213,17 +258,33 @@ def job_update(request):
    
         
 # @method_decorator(allowed_users(['A','CA']), name='dispatch')
-class JobDelete(LoginRequiredMixin,PermissionRequiredMixin,generics.DestroyAPIView):
+class JobDelete(LoginRequiredMixin,generics.DestroyAPIView):
     serializer_class = JobSerializer
     queryset = Job.objects.all()
-    permission_required = 'Job.can_delete'
+   # permission_required = 'Job.can_delete'
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the user has permission for the view
+        if not request.user.has_perm('main_app.delete_job'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        self.perform_destroy(instance)
+
+        return JsonResponse({'message': 'job has been deleted successfully'})
 
 @csrf_exempt
 # #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Application.can_view'])
+# @permission_required(['Application.can_view'])
 @api_view(['GET'])
 def application_list(request):
+    permissions = request.user.has_perm('main_app.view_application')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     applications = Application.objects.filter(user_id=request.user.id)
     # serialized_applications = [ApplicationSerializer(instance=app).data for app in applications]
     application_serializer = ApplicationSerializer(applications, many=True)
@@ -250,9 +311,12 @@ def get_user_info(request,user_id):
 @csrf_exempt
 # #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Application.can_add'])
+# @permission_required(['Application.can_add'])
 @api_view(['POST'])
 def application_create(request , user_id , job_id):
+    permissions = request.user.has_perm('main_app.add_application')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     user_id = request.user.id
     print("user_id",request.user.id)
     if 'resume' in request.FILES:
@@ -284,9 +348,12 @@ def application_create(request , user_id , job_id):
 @csrf_exempt
 # #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Application.can_change'])
+# @permission_required(['Application.can_change'])
 @api_view(['POST'])
 def application_update(request):
+    permissions = request.user.has_perm('main_app.change_application')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     application_id = request.GET.get('application_id')
     application_info = Application.objects.get(id=application_id)
     # making sure that the user who created the application is t he one who's updating the application
@@ -324,9 +391,12 @@ def application_update(request):
 @csrf_exempt
 # #@## @allowed_users(['A','J'])
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Application.can_delete'])
+# @permission_required(['Application.can_delete'])
 @api_view(['GET'])  
 def application_delete(request):
+    permissions = request.user.has_perm('main_app.delete_application')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     application_id = request.GET.get('application_id')
     print('application_id =' , application_id )
     try:
@@ -345,6 +415,7 @@ def application_delete(request):
 @permission_required 
 @api_view(['POST'])  
 def assoc_job(request):
+    
     job_id = request.GET.get('job_id')
     print('job_id', job_id)
     skill_id=request.GET.get('skill_id')
@@ -468,7 +539,7 @@ class CompanyList(LoginRequiredMixin , generics.ListAPIView):
     # permission_classes = [UserTypePermission]
     # allowed_user_types = ['J']  # Specify the allowed user types for this view
 
-    # permission_required = 'Company.can_view'
+    ## permission_required = 'Company.can_view'
 
     # def get(self, request, *args, **kwargs):
     #     company_list = CompanySerializer(self.get_queryset(), many=True).data
@@ -484,7 +555,7 @@ class CompanyList(LoginRequiredMixin , generics.ListAPIView):
 class CompanyDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
-    # permission_required = 'Company.can_view'
+    ## permission_required = 'Company.can_view'
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -498,9 +569,12 @@ class CompanyDetail(LoginRequiredMixin,generics.RetrieveAPIView):
 @csrf_exempt
 # # @allowed_users(['A','CA'])
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Company.can_add'])
+# @permission_required(['Company.can_add'])
 @api_view(['POST'])
 def company_create(request):
+    permissions = request.user.has_perm('main_app.add_company')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     try:
         user_id = request.user.id
         company_name = request.data['company_name']
@@ -523,10 +597,13 @@ def company_create(request):
 @csrf_exempt
 # # @allowed_users(['A','CA'])   
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Company.can_change'])
+# @permission_required(['Company.can_change'])
 @api_view(['POST'])
 def company_update(request):
-        try:
+    permissions = request.user.has_perm('main_app.change_company')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
+    try:
             company_id = request.GET.get('company_id')
             company_info = Company.objects.get(id = company_id)
             if 'company_name' in request.data:
@@ -538,8 +615,7 @@ def company_update(request):
             if 'email' in request.data:
                 company_info.email = request.data.get('email')
             
-            serialized_data = CompanySerializer(instance=company_info , data=request.data, 
-                                                partial=True, context={'instance':company_info})
+            serialized_data = CompanySerializer(instance=company_info , data=request.data, partial=True, context={'instance':company_info})
             
             updated_serialized_company = None
             if serialized_data.is_valid():
@@ -557,27 +633,54 @@ def company_update(request):
                     "errors": serialized_data.errors
                 }, status=400)
 
-        except Company.DoesNotExist:
+    except Company.DoesNotExist:
             return JsonResponse({'message': 'Company not found'}, status=404)
-        except Exception as e:
+    except Exception as e:
             return JsonResponse({'message': str(e)}, status=500)
         
         
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class CompanyDelete( LoginRequiredMixin, PermissionRequiredMixin , generics.DestroyAPIView):
+class CompanyDelete( LoginRequiredMixin , generics.DestroyAPIView):
     serializer_class = CompanySerializer
     queryset = Company.objects.all()
-    permission_required = 'Company.can_delete'
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the user has permission for the view
+        if not request.user.has_perm('main_app.delete_company'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        self.perform_destroy(instance)
+
+        return JsonResponse({'message': 'Category has been deleted successfully'})
+   # permission_required = 'Company.can_delete'
 # class ProfileList(LoginRequiredMixin,generics.ListAPIView):
 #     queryset = Profile.objects.all()
 #     serializer_class = ProfileSerializer
 
 
-class ProfileCreate(LoginRequiredMixin,PermissionRequiredMixin,generics.CreateAPIView):
+class ProfileCreate(LoginRequiredMixin,generics.CreateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_required = 'Profile.can_add'
+   ## permission_required = 'Profile.can_add'
+    def create(self, request, *args, **kwargs):
+        # Check if the user has the required permission for the view
+        if not request.user.has_perm('main_app.add_profile'):
+            print(f"User {request.user} does not have permission")
+            return Response({'message': "Unauthorized"}, status=403)
+
+        print(f"User {request.user} has permission")
+
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        # Optionally, you can customize the creation process here
+        serializer.save()
 
 
     
@@ -658,16 +761,37 @@ class LogoutView(APIView):
 
         return Response({'detail': 'Successfully logged out'}, status=status.HTTP_200_OK)
     
-class ProfileList(LoginRequiredMixin,PermissionRequiredMixin,generics.ListAPIView):
+class ProfileList(LoginRequiredMixin,generics.ListAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_required = 'Profile.can_view'
+   # permission_required = 'Profile.can_view'
 
 
-class ProfileUpdate(LoginRequiredMixin,PermissionRequiredMixin,generics.UpdateAPIView):
+class ProfileUpdate(LoginRequiredMixin,generics.UpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = UpdateProfileSerializer
-    permission_required = 'Profile.can_change'
+   # permission_required = 'Profile.can_change'
+    def update(self, request, *args, **kwargs):
+        # permissions = request.user.get_all_permissions()
+        # print(permissions)
+        instance = self.get_object()
+
+        # Check if the user has the required permission for the view
+        if not request.user.has_perm('main_app.change_profile'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        # # Check if the user has the required permission for the view
+        # if not request.user.has_perm('main_app.change_job_category'):
+        #     return JsonResponse({'message': "Unauthorized"})
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return JsonResponse( {'message': "profile updated successfully"})
 
 
 
@@ -743,22 +867,35 @@ class ProfileUpdate(LoginRequiredMixin,PermissionRequiredMixin,generics.UpdateAP
 #         else:
 #             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ProfileDelete(LoginRequiredMixin,PermissionRequiredMixin,generics.DestroyAPIView):
+class ProfileDelete(LoginRequiredMixin,generics.DestroyAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    permission_required = 'Profile.can_delete'
+   # permission_required = 'Profile.can_delete'
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the user has permission for the view
+        if not request.user.has_perm('main_app.delete_profile'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        self.perform_destroy(instance)
+
+        return JsonResponse({'message': 'profile has been deleted successfully'})
 
 class SkillList(LoginRequiredMixin,generics.ListAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    # permission_required = 'Skill.can_view'
+    ## permission_required = 'Skill.can_view'
 
  
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
 class SkillDetail(LoginRequiredMixin,generics.RetrieveAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    # permission_required = 'Skill.can_view'
+    ## permission_required = 'Skill.can_view'
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -770,26 +907,72 @@ class SkillDetail(LoginRequiredMixin,generics.RetrieveAPIView):
         return JsonResponse(response_data)
     
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class SkillCreate(LoginRequiredMixin, PermissionRequiredMixin, generics.CreateAPIView):
+class SkillCreate(LoginRequiredMixin,  generics.CreateAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    permission_required = 'Skill.can_add'
+   # permission_required = 'Skill.can_add'
     # model = Skill
     # fields = ['skill_name']
+    def create(self, request, *args, **kwargs):
+        # Check if the user has the required permission for the view
+        if not request.user.has_perm('main_app.add_skill'):
+            print(f"User {request.user} does not have permission")
+            return Response({'message': "Unauthorized"}, status=403)
+
+        print(f"User {request.user} has permission")
+
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        serializer.save()
     
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class SkillUpdate(LoginRequiredMixin,PermissionRequiredMixin, generics.UpdateAPIView):
+class SkillUpdate(LoginRequiredMixin, generics.UpdateAPIView):
     # model = Skill
     # fields = ['skill_name']
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    permission_required = 'Skill.can_change'
+   # permission_required = 'Skill.can_change'
+    def update(self, request, *args, **kwargs):
+        # permissions = request.user.get_all_permissions()
+        # print(permissions)
+        instance = self.get_object()
+
+        # Check if the user has the required permission for the view
+        if not request.user.has_perm('main_app.change_skill'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        # # Check if the user has the required permission for the view
+        # if not request.user.has_perm('main_app.change_job_category'):
+        #     return JsonResponse({'message': "Unauthorized"})
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        return JsonResponse( {'message': "skill updated successfully"})
 
 # @method_decorator(allowed_users(['A,CA']), name='dispatch')
-class SkillDelete(LoginRequiredMixin,PermissionRequiredMixin, generics.DestroyAPIView):
+class SkillDelete(LoginRequiredMixin, generics.DestroyAPIView):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
-    permission_required= 'Skill.can_delete'
+    # permission_required= 'Skill.can_delete'
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if the user has permission for the view
+        if not request.user.has_perm('main_app.delete_skill'):
+            print(f"User {request.user} does not have permission")
+            return JsonResponse({'message': "Unauthorized"})
+
+        print(f"User {request.user} has permission")
+
+        self.perform_destroy(instance)
+
+        return JsonResponse({'message': 'skill has been deleted successfully'})
     
 
 @csrf_exempt
@@ -838,9 +1021,12 @@ def get_jobs_by_company(request):
 
 @csrf_exempt
 @permission_classes([permissions.IsAuthenticated])
-@permission_required(['Application.can_view'])
+# @permission_required(['Application.can_view'])
 @api_view(['GET'])
 def get_application_for_company_admin(request):
+    permissions = request.user.has_perm('main_app.view_application')
+    if not permissions:
+        return JsonResponse({'message': "Unauthorized"})
     job_id = request.GET.get('job_id')
     try:
         all_applications_for_job = Application.objects.filter(job_id = job_id)
